@@ -9,7 +9,7 @@ import cv2
 # Set the page configuration with favicon
 st.set_page_config(
     page_title="Brick Crack Detection",
-    page_icon="static/brickicon4.png",  # Path to your favicon file
+    page_icon="static/brickicon8.png",  # Path to your favicon file
     layout="centered"
 )
 
@@ -227,15 +227,22 @@ else:
                 # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
                 predictions = import_and_predict(image, model)
                 if predictions is not None:
-                    probability = predictions[0][0]
-                    if probability > 0.5:
-                        predicted_class = "cracked"
-                        st.error(f"⚠️ This brick wall is {predicted_class}.")
+                    # Get the index of the highest probability
+                    predicted_class_idx = np.argmax(predictions[0])
+                    probability = predictions[0][predicted_class_idx]
+                
+                    if predicted_class_idx == 0:
+                        predicted_class = "normal wall"
+                        st.success(f"✅ This is a {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% normal.")
+                    elif predicted_class_idx == 1:
+                        predicted_class = "cracked wall"
+                        st.error(f"⚠️ This is a {predicted_class}.")
                         st.write(f"**Predicted Probability:** {probability * 100:.2f}% cracked.")
-                    else:
-                        predicted_class = "normal"
-                        st.success(f"✅ This brick wall is {predicted_class}.")
-                        st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
+                    elif predicted_class_idx == 2:
+                        predicted_class = "not a wall"
+                        st.warning(f"⚠️ This is {predicted_class}.")
+                        st.write(f"**Predicted Probability:** {probability * 100:.2f}% not a wall.")
     
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
