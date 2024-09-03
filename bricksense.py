@@ -5,6 +5,7 @@ from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import torch
 import cv2
+import tempfile
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -80,18 +81,7 @@ file = st.file_uploader("Please upload an image of the brick wall", type=("jpg",
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
-                break
-        exif = image._getexif()
-        if exif is not None:
-            orientation = exif.get(orientation, 1)
-            if orientation == 3:
-                image = image.rotate(180, expand=True)
-            elif orientation == 6:
-                image = image.rotate(270, expand=True)
-            elif orientation == 8:
-                image = image.rotate(90, expand=True)
+        image = ImageOps.exif_transpose(image)
     except (AttributeError, KeyError, IndexError):
         pass
     return image
@@ -156,8 +146,11 @@ else:
         
         # Convert the image to RGB and save temporarily for YOLO processing
         image = image.convert("RGB")  # Ensure image is in RGB mode
-        image_path = '/tmp/uploaded_image.jpg'
-        image.save(image_path, format='JPEG')  # Save as JPEG to avoid format issues
+        
+        # Save image temporarily
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+            image_path = tmp_file.name
+            image.save(tmp_file, format='JPEG')
         
         # Initialize flags for detection
         yolo_detected = False
@@ -167,8 +160,6 @@ else:
         confres = []
 
         # Step 1: Analyze with YOLOv5
-        yolo_detected_classes = []  # Initialize to avoid NameError
-
         yolo_results = analyze_with_yolo(image_path)
         if yolo_results is not None and not yolo_results.empty:
             # Check if any detected class name contains "wall"
@@ -183,18 +174,12 @@ else:
                     yolo_detected_classes = high_confidence_results['name'].unique().tolist()
                     confres.extend([class_name.capitalize() for class_name in yolo_detected_classes])
                     st.write("#### YOLO Classification Results:")
-                    # Capitalize each class name individually
-                    st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join([name.capitalize() for name in yolo_detected_classes])}")
-        
-        # Handle case where yolo_results is None or empty
-        if not yolo_detected_classes:
-            # st.write("No classes detected with high confidence using YOLOv5.")
-            pass
+                    st.write(f"YOLOv5 detected the following classes with high confidence: {', '.join(confres)}")
         
         # Step 2: ImageNet classification
         imagenet_predictions = import_and_predict_imagenet(image, imagenet_model)
         if imagenet_predictions:
-            if any("wall" in name.lower() for _, name, score in imagenet_predictions): # Detection of any wall class in imagenet predictions and getting out of loop
+            if any("wall" in name.lower() for _, name, score in imagenet_predictions):
                 resnet50_detected = True
             else:
                 high_confidence_imagenet = [(name, score) for _, name, score in imagenet_predictions if score >= 0.6]
@@ -206,7 +191,6 @@ else:
                 
         # Decision to proceed with TensorFlow model
         if yolo_detected or resnet50_detected:
-            # st.info("Proceeding with TensorFlow model prediction based on detection.")
             predictions = import_and_predict(image, model)
             if predictions is not None:
                 probability = predictions[0][0]
@@ -219,15 +203,11 @@ else:
                     st.success(f"✅ This brick wall is {predicted_class}.")
                     st.write(f"**Predicted Probability:** {(1 - probability) * 100:.2f}% normal.")
         else:
-            # Decision based on detection results
             if confres:
                 st.info(f"Following objects/subjects were detected: {', '.join(confres)}. Please upload an image of brick wall")
             else:
-                # Step 3: TensorFlow model prediction
-                # st.info("Neither YOLOv5 nor ImageNet detected relevant classes with high confidence. Proceeding with TensorFlow model prediction.")
                 predictions = import_and_predict(image, model)
                 if predictions is not None:
-                    # Get the index of the highest probability
                     predicted_class_idx = np.argmax(predictions[0])
                     probability = predictions[0][predicted_class_idx]
                 
