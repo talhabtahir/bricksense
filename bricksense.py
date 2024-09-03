@@ -16,7 +16,7 @@ st.set_page_config(
 # Custom CSS for additional styling
 st.markdown(
     """
-    <link rel="icon" href="static/brickicon4.png" type="image/x-icon">
+    <link rel="icon" href="static/brickicon8.png" type="image/x-icon">
     <style>
         .reportview-container {
             background-color: #f7f9fc;
@@ -45,7 +45,7 @@ st.markdown("<h1 class='main-header'>🧱 Brick Crack Detection 🧱</h1>", unsa
 
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model('Kg_33kmodelv36_basev4.keras')
+    return tf.keras.models.load_model('170kmodelv1_version_cam_1')
 
 @st.cache_resource
 def load_yolo_model():
