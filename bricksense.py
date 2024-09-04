@@ -58,9 +58,6 @@ Talha Bin Tahir
 **Email:** talhabtahir@gmail.com
 """)
 
-# Main area for image upload
-files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True)
-
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
@@ -94,10 +91,21 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-if files is None:
+# Initialize session state
+if 'uploaded_files' not in st.session_state:
+    st.session_state.uploaded_files = []
+
+# Main area for image upload
+files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True, key="file_uploader")
+
+# Store uploaded files in session state
+if files:
+    st.session_state.uploaded_files = files
+
+if not st.session_state.uploaded_files:
     st.info("Please upload image files to start the detection.")
 else:
-    for file in files:
+    for file in st.session_state.uploaded_files:
         try:
             # Display the uploaded image
             image = Image.open(file)
@@ -131,6 +139,9 @@ else:
         
         except Exception as e:
             st.error(f"Error processing the uploaded image {file.name}: {e}")
+
+    # Clear images after processing
+    st.session_state.uploaded_files = []
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
