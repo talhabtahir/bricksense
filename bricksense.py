@@ -104,7 +104,7 @@ if not files:
 else:
     with st.spinner("Processing images..."):
         # files.reverse()
-        for file in files:
+        # for file in files:
             try:
                 # Display the uploaded image
                 image = Image.open(file)
