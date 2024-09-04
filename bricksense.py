@@ -58,6 +58,9 @@ Talha Bin Tahir
 **Email:** talhabtahir@gmail.com
 """)
 
+# Main area for image upload
+files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True)
+
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
@@ -91,21 +94,12 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-# Initialize session state
-if 'uploaded_files' not in st.session_state:
-    st.session_state.uploaded_files = []
+# Placeholders for image and prediction output
+image_placeholder = st.empty()
+prediction_placeholder = st.empty()
 
-# Main area for image upload
-files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True, key="file_uploader")
-
-# Store uploaded files in session state
 if files:
-    st.session_state.uploaded_files = files
-
-if not st.session_state.uploaded_files:
-    st.info("Please upload image files to start the detection.")
-else:
-    for file in st.session_state.uploaded_files:
+    for file in files:
         try:
             # Display the uploaded image
             image = Image.open(file)
@@ -113,7 +107,8 @@ else:
             # Correct the orientation if necessary
             image = correct_orientation(image)
             
-            st.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
+            # Clear previous output and display the new image
+            image_placeholder.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
             
             # Perform prediction
             predictions = import_and_predict(image, model)
@@ -121,27 +116,24 @@ else:
                 predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
                 prediction_percentages = predictions[0] * 100  # Convert to percentages
                 
-                # Display prediction percentages for each class
-                st.write(f"**Prediction Percentages for {file.name}:**")
-                st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
-                st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
-                st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
+                # Clear previous output and display the new prediction
+                prediction_placeholder.write(f"**Prediction Percentages for {file.name}:**")
+                prediction_placeholder.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
+                prediction_placeholder.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
+                prediction_placeholder.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 
                 # Display the predicted class
                 if predicted_class == 0:
-                    st.success(f"✅ This is a normal wall.")
+                    prediction_placeholder.success(f"✅ This is a normal wall.")
                 elif predicted_class == 1:
-                    st.error(f"⚠️ This wall is cracked.")
+                    prediction_placeholder.error(f"⚠️ This wall is cracked.")
                 elif predicted_class == 2:
-                    st.warning(f"⚠️ This is not a wall.")
+                    prediction_placeholder.warning(f"⚠️ This is not a wall.")
                 else:
-                    st.error(f"❓ Unknown prediction result: {predicted_class}")
+                    prediction_placeholder.error(f"❓ Unknown prediction result: {predicted_class}")
         
         except Exception as e:
             st.error(f"Error processing the uploaded image {file.name}: {e}")
-
-    # Clear images after processing
-    st.session_state.uploaded_files = []
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
