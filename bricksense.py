@@ -94,12 +94,16 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
+# Placeholders to manage dynamic content
+image_placeholder = st.empty()
+prediction_placeholder = st.empty()
+
 if files:
     for file in files:
         try:
-            # Create a placeholder for the current image and results
-            image_placeholder = st.empty()
-            prediction_placeholder = st.empty()
+            # Clear previous content
+            image_placeholder.empty()
+            prediction_placeholder.empty()
             
             # Display the uploaded image
             image = Image.open(file)
