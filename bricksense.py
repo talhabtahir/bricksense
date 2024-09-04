@@ -94,20 +94,19 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-# Placeholders for image and prediction output
-image_placeholder = st.empty()
-prediction_placeholder = st.empty()
-
 if files:
     for file in files:
         try:
+            # Create a placeholder for the current image and results
+            image_placeholder = st.empty()
+            prediction_placeholder = st.empty()
+            
             # Display the uploaded image
             image = Image.open(file)
             
             # Correct the orientation if necessary
             image = correct_orientation(image)
             
-            # Clear previous output and display the new image
             image_placeholder.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
             
             # Perform prediction
@@ -116,7 +115,7 @@ if files:
                 predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
                 prediction_percentages = predictions[0] * 100  # Convert to percentages
                 
-                # Clear previous output and display the new prediction
+                # Display prediction percentages for each class
                 prediction_placeholder.write(f"**Prediction Percentages for {file.name}:**")
                 prediction_placeholder.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 prediction_placeholder.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
