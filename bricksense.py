@@ -2,7 +2,6 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
-import pandas as pd
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -65,7 +64,7 @@ Talha Bin Tahir
 """)
 
 # Main area for image upload
-files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True)
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
@@ -100,52 +99,44 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-# Check if any files were uploaded
-if not files:
-    st.info("Please upload image files to start the detection.")
+# Check if a file was uploaded
+if file is None:
+    st.info("Please upload an image file to start the detection.")
 else:
-    with st.spinner("Processing images..."):
-        # Reverse the list to display the latest uploaded image first
-        files.reverse()
-
-        # Prepare a list to hold the results
-        results = []
-
-        for file in files:
-            try:
-                # Display the uploaded image
-                image = Image.open(file)
-                
-                # Correct the orientation if necessary
-                image = correct_orientation(image)
-                
-                st.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
-                
-                # Perform prediction
-                predictions = import_and_predict(image, model)
-                if predictions is not None:
-                    predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
-                    prediction_percentages = predictions[0] * 100  # Convert to percentages
-                    
-                    # Prepare the result for this image
-                    result = {
-                        "Image Name": file.name,
-                        "Normal Wall (%)": f"{prediction_percentages[0]:.2f}",
-                        "Cracked Wall (%)": f"{prediction_percentages[1]:.2f}",
-                        "Not a Wall (%)": f"{prediction_percentages[2]:.2f}",
-                        "Prediction": "Normal Wall" if predicted_class == 0 else 
-                                      "Cracked Wall" if predicted_class == 1 else 
-                                      "Not a Wall" if predicted_class == 2 else "Unknown"
-                    }
-                    results.append(result)
+    with st.spinner("Processing image..."):
+        try:
+            # Display the uploaded image
+            image = Image.open(file)
             
-            except Exception as e:
-                st.error(f"Error processing the uploaded image {file.name}: {e}")
-
-        # Display the results in a table
-        if results:
-            df = pd.DataFrame(results)
-            st.table(df)
+            # Correct the orientation if necessary
+            image = correct_orientation(image)
+            
+            st.image(image, caption="Uploaded Image", use_column_width=True)
+            
+            # Perform prediction
+            predictions = import_and_predict(image, model)
+            if predictions is not None:
+                predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
+                prediction_percentages = predictions[0] * 100  # Convert to percentages
+                
+                # Display prediction percentages for each class
+                st.write(f"**Prediction Percentages:**")
+                st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
+                st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
+                st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
+                
+                # Display the predicted class
+                if predicted_class == 0:
+                    st.success(f"✅ This is a normal brick wall.")
+                elif predicted_class == 1:
+                    st.error(f"❌ This wall is a cracked brick wall.")
+                elif predicted_class == 2:
+                    st.warning(f"⚠️ This is not a brick wall.")
+                else:
+                    st.error(f"❓ Unknown prediction result: {predicted_class}")
+        
+        except Exception as e:
+            st.error(f"Error processing the uploaded image: {e}")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
