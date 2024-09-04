@@ -50,7 +50,7 @@ model = load_model()
 st.sidebar.header("About This App")
 st.sidebar.write("""
 This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. 
-You can upload one or multiple images, and the app will analyze them to provide predictions.
+You can upload an image, and the app will analyze it to provide predictions.
 """)
 st.sidebar.write("""
 **Developed by:**  
@@ -59,7 +59,11 @@ Talha Bin Tahir
 """)
 
 # Main area for image upload
-files = st.file_uploader("Please upload images of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), accept_multiple_files=True)
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
+
+# Placeholder for image and prediction
+image_placeholder = st.empty()
+prediction_placeholder = st.empty()
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
@@ -94,45 +98,41 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-if files:
-    for i, file in enumerate(files):
-        try:
-            # Use the image's filename as a unique identifier for the placeholders
-            image_placeholder = st.empty()
-            prediction_placeholder = st.empty()
-            
-            # Display the uploaded image
-            image = Image.open(file)
-            
-            # Correct the orientation if necessary
-            image = correct_orientation(image)
-            
-            image_placeholder.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
-            
-            # Perform prediction
-            predictions = import_and_predict(image, model)
-            if predictions is not None:
-                predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
-                prediction_percentages = predictions[0] * 100  # Convert to percentages
-                
-                # Display prediction percentages for each class
-                prediction_placeholder.write(f"**Prediction Percentages for {file.name}:**")
-                prediction_placeholder.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
-                prediction_placeholder.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
-                prediction_placeholder.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
-                
-                # Display the predicted class
-                if predicted_class == 0:
-                    prediction_placeholder.success(f"✅ This is a normal wall.")
-                elif predicted_class == 1:
-                    prediction_placeholder.error(f"⚠️ This wall is cracked.")
-                elif predicted_class == 2:
-                    prediction_placeholder.warning(f"⚠️ This is not a wall.")
-                else:
-                    prediction_placeholder.error(f"❓ Unknown prediction result: {predicted_class}")
+if file:
+    try:
+        # Display the uploaded image
+        image = Image.open(file)
         
-        except Exception as e:
-            st.error(f"Error processing the uploaded image {file.name}: {e}")
+        # Correct the orientation if necessary
+        image = correct_orientation(image)
+        
+        # Update the image placeholder
+        image_placeholder.image(image, caption=f"Uploaded Image: {file.name}", use_column_width=True)
+        
+        # Perform prediction
+        predictions = import_and_predict(image, model)
+        if predictions is not None:
+            predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
+            prediction_percentages = predictions[0] * 100  # Convert to percentages
+            
+            # Update the prediction placeholder
+            prediction_placeholder.write(f"**Prediction Percentages for {file.name}:**")
+            prediction_placeholder.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
+            prediction_placeholder.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
+            prediction_placeholder.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
+            
+            # Display the predicted class
+            if predicted_class == 0:
+                prediction_placeholder.success(f"✅ This is a normal wall.")
+            elif predicted_class == 1:
+                prediction_placeholder.error(f"⚠️ This wall is cracked.")
+            elif predicted_class == 2:
+                prediction_placeholder.warning(f"⚠️ This is not a wall.")
+            else:
+                prediction_placeholder.error(f"❓ Unknown prediction result: {predicted_class}")
+    
+    except Exception as e:
+        st.error(f"Error processing the uploaded image: {e}")
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
