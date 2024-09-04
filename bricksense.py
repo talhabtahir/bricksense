@@ -103,7 +103,7 @@ if not files:
     st.info("Please upload image files to start the detection.")
 else:
     with st.spinner("Processing images..."):
-        files.reverse()
+        # files.reverse()
         for file in files:
             try:
                 # Display the uploaded image
