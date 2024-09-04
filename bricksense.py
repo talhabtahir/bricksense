@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
+import pandas as pd
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -99,10 +100,17 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-if files is None:
+# Check if any files were uploaded
+if not files:
     st.info("Please upload image files to start the detection.")
 else:
     with st.spinner("Processing images..."):
+        # Reverse the list to display the latest uploaded image first
+        files.reverse()
+
+        # Prepare a list to hold the results
+        results = []
+
         for file in files:
             try:
                 # Display the uploaded image
@@ -119,24 +127,25 @@ else:
                     predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
                     prediction_percentages = predictions[0] * 100  # Convert to percentages
                     
-                    # Display prediction percentages for each class
-                    st.write(f"**Prediction Percentages for {file.name}:**")
-                    st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
-                    st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
-                    st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
-                    
-                    # Display the predicted class
-                    if predicted_class == 0:
-                        st.success(f"✅ This is a normal brick wall.")
-                    elif predicted_class == 1:
-                        st.error(f"❌ This wall is a cracked brick wall.")
-                    elif predicted_class == 2:
-                        st.warning(f"⚠️ This is not a brick wall.")
-                    else:
-                        st.error(f"❓ Unknown prediction result: {predicted_class}")
+                    # Prepare the result for this image
+                    result = {
+                        "Image Name": file.name,
+                        "Normal Wall (%)": f"{prediction_percentages[0]:.2f}",
+                        "Cracked Wall (%)": f"{prediction_percentages[1]:.2f}",
+                        "Not a Wall (%)": f"{prediction_percentages[2]:.2f}",
+                        "Prediction": "Normal Wall" if predicted_class == 0 else 
+                                      "Cracked Wall" if predicted_class == 1 else 
+                                      "Not a Wall" if predicted_class == 2 else "Unknown"
+                    }
+                    results.append(result)
             
             except Exception as e:
                 st.error(f"Error processing the uploaded image {file.name}: {e}")
+
+        # Display the results in a table
+        if results:
+            df = pd.DataFrame(results)
+            st.table(df)
 
 # Footer
 st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
