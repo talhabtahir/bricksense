@@ -99,7 +99,7 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-if files is None:
+if not files:
     st.info("Please upload image files to start the detection.")
 else:
     with st.spinner("Processing images..."):
