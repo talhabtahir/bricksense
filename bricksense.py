@@ -36,9 +36,21 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+# Display logo instead of header
+imagelogo = Image.open("static/head1.png")
+st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
 
+# Add space below the logo
+st.write("")  # Creates a blank line
+st.write(" ")  # Creates an extra line for more space
+st.write(" ")  # Adjust the number of empty lines for desired spacing
 # Header with an icon
-st.markdown("<h1 class='main-header'>🧱 Brick Detection 🧱</h1>", unsafe_allow_html=True)
+# st.markdown("<h1 class='main-header'>🧱 Brick Detection 🧱</h1>", unsafe_allow_html=True)
+ # Sidebar navigation with icons
+st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
+st.sidebar.markdown("### ")
+st.sidebar.markdown("### ")
+st.sidebar.markdown("### ")
 
 @st.cache_resource
 def load_model():
