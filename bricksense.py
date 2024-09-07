@@ -37,7 +37,7 @@ st.markdown(
     unsafe_allow_html=True
 )
 # Display logo instead of header
-imagelogo = Image.open("static/head1.png")
+imagelogo = Image.open("static/sidelogo.png")
 st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
 
 # Add space below the logo
