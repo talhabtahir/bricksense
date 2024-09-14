@@ -2,6 +2,7 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
+import matplotlib.pyplot as plt
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -114,6 +115,7 @@ def import_and_predict(image_data, model):
 def crack_position(image):
     try:
         # Read the uploaded image file
+        custom_model = tf.keras.models.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
         img = Image.open(file)
         img = img.resize((224, 224))
         img = np.array(img)
