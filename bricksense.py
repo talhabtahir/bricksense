@@ -3,7 +3,7 @@ import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import cv2
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # Set the page configuration with favicon
 st.set_page_config(
