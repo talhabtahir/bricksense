@@ -130,8 +130,8 @@ def crack_position(image_pos):
         size = (224, 224)
         image = image_pos.convert("RGB")
         image = ImageOps.fit(image, size, Image.LANCZOS)
-        img = np.asarray(image).astype(np.float32) / 255.0
-        img_reshape = img[np.newaxis, ...]  # Add batch dimension
+        img = np.asarray(image).astype(np.float32)
+        img_reshape = img[np.newaxis, ...]/255.0  # Add batch dimension
         prediction = model.predict(img_reshape)
     
         # Get the conv2d_3 output and the predictions
