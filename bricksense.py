@@ -40,6 +40,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
 st.image(imagelogo, use_column_width=True, width=150)
@@ -151,13 +152,19 @@ else:
                 # Generate heatmap and contours
                 heat_map, contoured_img_only = generate_heatmap_and_contours(img, model, predictions[0])
                 
+                # Normalize contoured image for display
+                contoured_img_only = contoured_img_only.astype(np.float32) / 255.0
+
                 # Display the contoured image
                 st.image(contoured_img_only, caption="Image with Contours", use_column_width=True)
 
+                # Normalize heatmap for display
+                heat_map = heat_map.astype(np.float32)
+
                 # Display the heatmap
                 fig, ax = plt.subplots()
-                ax.imshow(img)
-                ax.imshow(heat_map, cmap='jet', alpha=0.4)
+                ax.imshow(img)  # Original image
+                ax.imshow(heat_map, cmap='jet', alpha=0.4)  # Overlay heatmap with transparency
                 st.pyplot(fig)
 
                 # Display prediction percentages for each class
