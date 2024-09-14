@@ -186,9 +186,9 @@ else:
             
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
-            # Crack location
-            image = crack_position(image)
-            st.image(image, caption="Crack Location in the image", use_column_width=True)
+            # Perform crack localization (do not overwrite the image variable)
+            crack_pos = crack_position(image)  # crack_position should be called with image
+            st.image(crack_pos, caption="Crack Location in the image", use_column_width=True)
             
             # Perform prediction
             predictions = import_and_predict(image, model)
