@@ -10,7 +10,7 @@ from keras.models import Model
 st.title("Brick Wall Crack Detection")
 
 # Load the pre-trained model
-model_path = 'path/to/170kmodelv3_version_cam_1.keras'
+model_path = '170kmodelv3_version_cam_1.keras'
 model = tf.keras.models.load_model(model_path)
 
 # Define a new model that outputs feature maps and prediction
