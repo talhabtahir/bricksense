@@ -117,19 +117,19 @@ def crack_position(image):
     try:
         # Read the uploaded image file
         custom_model = tf.keras.models.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
-        img = Image.open(file)
-        img = img.resize((224, 224))
-        img = np.array(img)
+        # img = Image.open(file)
+        # img = img.resize((224, 224))
+        # img = np.array(img)
     
-        # Display the uploaded image
-        # st.image(img, caption="Uploaded Image", use_column_width=True)
+        # # Display the uploaded image
+        # # st.image(img, caption="Uploaded Image", use_column_width=True)
     
-        # Preprocess the image for prediction
-        img_tensor = np.expand_dims(img, axis=0) / 255.0
-        preprocessed_img = img_tensor
+        # # Preprocess the image for prediction
+        # img_tensor = np.expand_dims(img, axis=0) / 255.0
+        # preprocessed_img = img_tensor
     
         # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+        conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
         conv2d_3_output = np.squeeze(conv2d_3_output)
     
         # Prediction for the image
