@@ -1,189 +1,95 @@
 import streamlit as st
-import tensorflow as tf
-from PIL import Image, ImageOps, ExifTags
+import pandas as pd
+from PIL import Image
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import tensorflow as tf
+from keras.models import Model
 
-# Set the page configuration with favicon
-st.set_page_config(
-    page_title="Brick Detection",
-    page_icon="static/brickicon8.png",
-    layout="centered"
-)
+# Streamlit app title
+st.title("Brick Wall Crack Detection")
 
-# Custom CSS for additional styling
-st.markdown(
-    """
-    <link rel="icon" href="static/brickicon8.png" type="image/x-icon">
-    <style>
-        .reportview-container {
-            background-color: #f7f9fc;
-            padding-top: 20px;
-        }
-        .sidebar .sidebar-content {
-            background-color: #f7f9fc;
-        }
-        .main-header {
-            color: #ff6347;
-            text-align: center;
-        }
-        .footer {
-            text-align: center;
-            padding: 10px;
-            font-size: small;
-            color: #666;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Upload CSV file
+uploaded_csv = st.file_uploader("Upload the CSV file", type=["csv"])
 
-# Display logo instead of header
-imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=True, width=150)
+# Upload model file
+uploaded_model = st.file_uploader("Upload the model (.keras file)", type=["keras"])
 
-# Sidebar information
-st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
-st.sidebar.header("About This App")
-st.sidebar.write("""
-This app uses a CNN model to detect brick walls and classify them as either normal, cracked, or not a wall. 
-You can upload an image, and the app will analyze it to provide a prediction.
-""")
-st.sidebar.write("""
-**Developed by:**  
-Talha Bin Tahir  
-**Email:** talhabtahir@gmail.com
-""")
+# Class dictionary built-in
+class_dict = {
+    0: 'Normal',
+    1: 'Cracked',
+    2: 'Not a Wall'
+}
 
-# Model loading with enhanced error handling
-@st.cache_resource
-def load_model():
-    try:
-        model = tf.keras.models.load_model('170kmodelv3_version_cam_1.keras')
-        st.write("Model loaded successfully!")
-        return model
-    except Exception as e:
-        st.error(f"Failed to load model: {e}")
-        return None
+if uploaded_csv and uploaded_model:
+    # Load the CSV data
+    df_test = pd.read_csv(uploaded_csv)
 
-model = load_model()
+    # Filter the DataFrame
+    df_test = df_test[df_test['label'] == 1]
 
-# Display model summary for debugging
-if model:
-    with st.expander("Model Summary"):
-        st.text(model.summary())
+    # Upload an image file
+    file = st.file_uploader("Upload an image file", type=["jpg", "png", "jpeg"])
 
-# Function to correct image orientation based on EXIF data
-def correct_orientation(image):
-    try:
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
-                break
-        exif = image._getexif()
-        if exif is not None:
-            orientation = exif.get(orientation, 1)
-            if orientation == 3:
-                image = image.rotate(180, expand=True)
-            elif orientation == 6:
-                image = image.rotate(270, expand=True)
-            elif orientation == 8:
-                image = image.rotate(90, expand=True)
-    except (AttributeError, KeyError, IndexError) as e:
-        st.warning(f"Orientation correction failed: {e}")
-    return image
+    if file is None:
+        st.warning("Please upload a file.")
+    else:
+        # Read the uploaded image file
+        img = Image.open(file)
+        img = img.resize((224, 224))
+        img = np.array(img)
 
-# Function to generate heatmap and contours based on the predictions
-def generate_heatmap_and_contours(img_array, model):
-    try:
-        img_tensor = np.expand_dims(img_array, axis=0) / 255.0
+        # Display the uploaded image
+        st.image(img, caption="Uploaded Image", use_column_width=True)
+
+        # Preprocess the image for prediction
+        img_tensor = np.expand_dims(img, axis=0) / 255.0
         preprocessed_img = img_tensor
-        
-        # Check layer numbers for compatibility
-        if len(model.layers) <= 10:
-            st.error("The model does not have enough layers. Please check the model architecture.")
-            return None, None, None
-        
-        # Define a new model that outputs the conv2d_3 feature maps and the prediction
-        custom_model = tf.keras.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
-        
+
+        # Load the custom model
+        model = tf.keras.models.load_model(uploaded_model)
+
+        # Define a new model that outputs feature maps and prediction
+        custom_model = Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
+
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # Ensure correct dimensions
-        
-        # Resize the conv2d_3 output to match the input image size
-        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img_array.shape[1], img_array.shape[0]), interpolation=cv2.INTER_LINEAR)
-        
-        # Average all the filters to get a single activation map (heatmap)
+        conv2d_3_output = np.squeeze(conv2d_3_output)
+
+        # Prediction for the image
+        pred = np.argmax(pred_vec)
+
+        # Resize the conv2d_3 output
+        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
+
+        # Generate heatmap
         heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
-        
+        heat_map = np.maximum(heat_map, 0)
+        heat_map = heat_map / heat_map.max()
+
         # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5
-        heat_map_thresh = np.uint8(255 * heat_map)  # Convert heatmap to 8-bit image
+        heat_map_thresh = np.uint8(255 * heat_map)
         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
-        
+
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+
         # Draw contours on the original image
-        contoured_img_only = img_array.copy()
-        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours
-        
-        return contoured_img_only, heat_map, pred_vec
-    except Exception as e:
-        st.error(f"Error generating heatmap and contours: {e}")
-        return None, None, None
+        contoured_img_only = img.copy()
+        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)
 
-# Function to make predictions and generate the heatmap and contours
-def import_and_predict(image_data, model):
-    try:
-        size = (224, 224)
-        image = image_data.convert("RGB")
-        image = ImageOps.fit(image, size, Image.LANCZOS)
-        img_array = np.asarray(image).astype(np.float32)
+        # Fetch the class name for the prediction
+        predicted_class = class_dict[pred]
 
-        contoured_img, heatmap, predictions = generate_heatmap_and_contours(img_array, model)
-        
-        predicted_class = np.argmax(predictions[0]) if predictions is not None else None
-        return contoured_img, predicted_class
-    except Exception as e:
-        st.error(f"An error occurred during prediction: {e}")
-        return None, None
+        # Display the image with contours and predicted class
+        st.image(contoured_img_only, caption=f"Predicted Class: {predicted_class}", use_column_width=True)
 
-# Check if a file was uploaded
-if file is None:
-    st.info("Please upload an image file to start the detection.")
-else:
-    with st.spinner("Processing image..."):
-        try:
-            # Display the uploaded image
-            image = Image.open(file)
-            
-            # Correct the orientation if necessary
-            image = correct_orientation(image)
-            
-            st.image(image, caption="Uploaded Image", use_column_width=True)
-            
-            # Perform prediction
-            contoured_img, predicted_class = import_and_predict(image, model)
-            
-            if contoured_img is not None:
-                st.image(contoured_img, caption="Detected Contours", use_column_width=True)
-                
-                # Display the predicted class
-                if predicted_class == 0:
-                    st.success(f"✅ This is a normal brick wall.")
-                elif predicted_class == 1:
-                    st.error(f"❌ This wall is a cracked brick wall.")
-                elif predicted_class == 2:
-                    st.warning(f"⚠️ This is not a brick wall.")
-                else:
-                    st.error(f"❓ Unknown prediction result: {predicted_class}")
-        
-        except Exception as e:
-            st.error(f"Error processing the uploaded image: {e}")
-
-# Footer
-st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
+        # Optionally, you can add heatmap visualization
+        fig, ax = plt.subplots()
+        ax.imshow(img)
+        ax.imshow(heat_map, cmap='jet', alpha=0.4)
+        ax.set_title("Heatmap")
+        st.pyplot(fig)
