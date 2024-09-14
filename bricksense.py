@@ -113,7 +113,7 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None
 # Function to localize the crack
-def crack_position(image):
+def crack_position(image_pos):
     try:
         # Read the uploaded image file
         custom_model = tf.keras.models.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
@@ -128,7 +128,7 @@ def crack_position(image):
         # img_tensor = np.expand_dims(img, axis=0) / 255.0
         # preprocessed_img = img_tensor
         size = (224, 224)
-        image = image_data.convert("RGB")
+        image = image_pos.convert("RGB")
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]  # Add batch dimension
