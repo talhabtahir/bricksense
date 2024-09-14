@@ -7,4 +7,3 @@ opencv-python-headless
 ultralytics
 matplotlib.pyplot
 ast
-keras.models
