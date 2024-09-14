@@ -164,7 +164,7 @@ def crack_position(image_pos):
         # predicted_class = class_dict[pred]
     
         # Display the image with contours and predicted class
-        crack_pos = st.image(contoured_img_only, use_column_width=True)
+        crack_pos = st.image(contoured_img_only, use_column_width=False)
     
         # Optionally, you can add heatmap visualization
         # fig, ax = plt.subplots()
