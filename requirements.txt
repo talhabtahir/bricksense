@@ -5,3 +5,4 @@ numpy
 torch
 opencv-python-headless
 ultralytics
+matplotlib
