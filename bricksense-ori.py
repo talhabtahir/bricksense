@@ -110,6 +110,64 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
+# Function to localize the crack
+def crack_position(image):
+    try:
+        # Read the uploaded image file
+        img = Image.open(file)
+        img = img.resize((224, 224))
+        img = np.array(img)
+    
+        # Display the uploaded image
+        # st.image(img, caption="Uploaded Image", use_column_width=True)
+    
+        # Preprocess the image for prediction
+        img_tensor = np.expand_dims(img, axis=0) / 255.0
+        preprocessed_img = img_tensor
+    
+        # Get the conv2d_3 output and the predictions
+        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+        conv2d_3_output = np.squeeze(conv2d_3_output)
+    
+        # Prediction for the image
+        pred = np.argmax(pred_vec)
+    
+        # Resize the conv2d_3 output
+        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
+    
+        # Generate heatmap
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)
+        heat_map = np.maximum(heat_map, 0)
+        heat_map = heat_map / heat_map.max()
+    
+        # Threshold the heatmap to get the regions with the highest activation
+        threshold = 0.5
+        heat_map_thresh = np.uint8(255 * heat_map)
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
+    
+        # Find contours in the thresholded heatmap
+        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
+        # Draw contours on the original image
+        contoured_img_only = img.copy()
+        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)
+    
+        # Fetch the class name for the prediction
+        # predicted_class = class_dict[pred]
+    
+        # Display the image with contours and predicted class
+        crack_pos = st.image(contoured_img_only, use_column_width=True)
+    
+        # Optionally, you can add heatmap visualization
+        # fig, ax = plt.subplots()
+        # ax.imshow(img)
+        # ax.imshow(heat_map, cmap='jet', alpha=0.4)
+        # ax.set_title("Heatmap")
+        # st.pyplot(fig)
+        return crack_pos
+    except Exception as e:
+        st.error(f"An error occurred during prediction: {e}")
+        return None
 
 # Check if a file was uploaded
 if file is None:
@@ -124,6 +182,10 @@ else:
             image = correct_orientation(image)
             
             st.image(image, caption="Uploaded Image", use_column_width=True)
+
+            # Crack location
+            image = crack_position(image)
+            st.image(image, caption="Crack Location in the image", use_column_width=True)
             
             # Perform prediction
             predictions = import_and_predict(image, model)
