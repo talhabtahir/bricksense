@@ -6,5 +6,4 @@ torch
 opencv-python-headless
 ultralytics
 matplotlib.pyplot
-ast
-cv2
+
