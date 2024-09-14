@@ -127,6 +127,12 @@ def crack_position(image):
         # # Preprocess the image for prediction
         # img_tensor = np.expand_dims(img, axis=0) / 255.0
         # preprocessed_img = img_tensor
+        size = (224, 224)
+        image = image_data.convert("RGB")
+        image = ImageOps.fit(image, size, Image.LANCZOS)
+        img = np.asarray(image).astype(np.float32) / 255.0
+        img_reshape = img[np.newaxis, ...]  # Add batch dimension
+        prediction = model.predict(img_reshape)
     
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
