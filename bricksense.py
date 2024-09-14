@@ -35,7 +35,7 @@ else:
     img = np.array(img)
 
     # Display the uploaded image
-    st.image(img, caption="Uploaded Image", use_column_width=True)
+    # st.image(img, caption="Uploaded Image", use_column_width=True)
 
     # Preprocess the image for prediction
     img_tensor = np.expand_dims(img, axis=0) / 255.0
@@ -79,4 +79,4 @@ else:
     ax.imshow(img)
     ax.imshow(heat_map, cmap='jet', alpha=0.4)
     ax.set_title("Heatmap")
-    st.pyplot(fig)
+    # st.pyplot(fig)
