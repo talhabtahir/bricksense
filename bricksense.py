@@ -3,7 +3,7 @@ import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import cv2
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -41,7 +41,7 @@ st.markdown(
 
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
+st.image(imagelogo, use_column_width=True, width=150)
 
 # Sidebar information
 st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
@@ -56,10 +56,12 @@ Talha Bin Tahir
 **Email:** talhabtahir@gmail.com
 """)
 
+# Model loading with enhanced error handling
 @st.cache_resource
 def load_model():
     try:
         model = tf.keras.models.load_model('170kmodelv3_version_cam_1.keras')
+        st.write("Model loaded successfully!")
         return model
     except Exception as e:
         st.error(f"Failed to load model: {e}")
@@ -67,8 +69,10 @@ def load_model():
 
 model = load_model()
 
-# Main area for image upload
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
+# Display model summary for debugging
+if model:
+    with st.expander("Model Summary"):
+        st.text(model.summary())
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
@@ -85,8 +89,8 @@ def correct_orientation(image):
                 image = image.rotate(270, expand=True)
             elif orientation == 8:
                 image = image.rotate(90, expand=True)
-    except (AttributeError, KeyError, IndexError):
-        pass
+    except (AttributeError, KeyError, IndexError) as e:
+        st.warning(f"Orientation correction failed: {e}")
     return image
 
 # Function to generate heatmap and contours based on the predictions
@@ -95,15 +99,17 @@ def generate_heatmap_and_contours(img_array, model):
         img_tensor = np.expand_dims(img_array, axis=0) / 255.0
         preprocessed_img = img_tensor
         
+        # Check layer numbers for compatibility
+        if len(model.layers) <= 10:
+            st.error("The model does not have enough layers. Please check the model architecture.")
+            return None, None, None
+        
         # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = tf.keras.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
         
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
-        
-        # Prediction for the image
-        pred = np.argmax(pred_vec)
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # Ensure correct dimensions
         
         # Resize the conv2d_3 output to match the input image size
         upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img_array.shape[1], img_array.shape[0]), interpolation=cv2.INTER_LINEAR)
@@ -121,11 +127,11 @@ def generate_heatmap_and_contours(img_array, model):
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        # Draw contours on the original image (without the heatmap overlay)
+        # Draw contours on the original image
         contoured_img_only = img_array.copy()
-        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
+        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours
         
-        return contoured_img_only, heat_map, pred
+        return contoured_img_only, heat_map, pred_vec
     except Exception as e:
         st.error(f"Error generating heatmap and contours: {e}")
         return None, None, None
@@ -138,8 +144,9 @@ def import_and_predict(image_data, model):
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img_array = np.asarray(image).astype(np.float32)
 
-        contoured_img, heatmap, predicted_class = generate_heatmap_and_contours(img_array, model)
+        contoured_img, heatmap, predictions = generate_heatmap_and_contours(img_array, model)
         
+        predicted_class = np.argmax(predictions[0]) if predictions is not None else None
         return contoured_img, predicted_class
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
