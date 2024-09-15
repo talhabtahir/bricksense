@@ -1,55 +1,9 @@
 import streamlit as st
-import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
-import matplotlib.pyplot as plt
+import tensorflow as tf
 import cv2
 from keras.models import Model
-
-# Set the page configuration with favicon
-st.set_page_config(
-    page_title="Brick Detection",
-    page_icon="static/brickicon8.png",  # Path to your favicon file
-    layout="centered"
-)
-
-# Custom CSS for additional styling
-st.markdown(
-    """
-    <link rel="icon" href="static/brickicon8.png" type="image/x-icon">
-    <style>
-        .reportview-container {
-            background-color: #f7f9fc;
-            padding-top: 20px;
-        }
-        .sidebar .sidebar-content {
-            background-color: #f7f9fc;
-        }
-        .main-header {
-            color: #ff6347;
-            text-align: center;
-        }
-        .footer {
-            text-align: center;
-            padding: 10px;
-            font-size: small;
-            color: #666;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-# Display logo instead of header
-imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
-
-# Sidebar for app information
-st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
-st.sidebar.header("About This App")
-st.sidebar.write("""
-This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. 
-You can upload an image, and the app will analyze it to provide a prediction.
-""")
 
 @st.cache_resource
 def load_model():
@@ -62,7 +16,6 @@ def load_model():
 
 model = load_model()
 
-# Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
         if hasattr(image, '_getexif'):
@@ -82,72 +35,28 @@ def correct_orientation(image):
         st.error(f"Error correcting orientation: {e}")
     return image
 
-# Function to make predictions using the TensorFlow model
 def import_and_predict(image_data, model):
     try:
         size = (224, 224)
         image = image_data.convert("RGB")
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
-        img_reshape = img[np.newaxis, ...]  # Add batch dimension
+        img_reshape = img[np.newaxis, ...]
         prediction = model.predict(img_reshape)
         return prediction
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
 
-# Define a custom model for Grad-CAM output
-if model is not None:
-    custom_model = Model(inputs=model.inputs,
-                         outputs=(model.layers[10].output, model.layers[-1].output))
-
-def crack_position(image, threshold=0.5):
-    try:
-        # Preprocess the uploaded image
-        img = Image.open(image)
-        img = img.resize((224, 224))
-        img = np.array(img)
-        
-        img_tensor = np.expand_dims(img, axis=0) / 255.0
-        preprocessed_img = img_tensor
-    
-        # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
-    
-        # Prediction for the image
-        pred = np.argmax(pred_vec)
-        st.write(f"Prediction: {pred}")
-    
-        # Resize the conv2d_3 output to match the input image size
-        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
-    
-        # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters
-    
-        # Normalize the heatmap
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
-    
-        # Threshold the heatmap
-        heat_map_thresh = np.uint8(255 * heat_map)
-        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
-    
-        # Find contours in the thresholded heatmap
-        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-        # Draw contours on the original image
-        contoured_img_only = img.copy()  # Copy original image
-        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours
-    
-        # Display the image with contours using Streamlit
-        st.image(contoured_img_only, caption='Image with Contours', use_column_width=True)
-    except Exception as e:
-        st.error(f"An error occurred during crack localization: {e}")
-        return None
+# Debugging wrapper to display file details
+def display_file_details(uploaded_file):
+    st.write(f"Uploaded file type: {type(uploaded_file)}")
+    st.write(f"File name: {uploaded_file.name}")
+    st.write(f"File size: {uploaded_file.size} bytes")
+    st.write(f"File type: {uploaded_file.type}")
 
 # Main area for image upload
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
+file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
 
 # Check if a file was uploaded
 if file is None:
@@ -155,6 +64,9 @@ if file is None:
 else:
     with st.spinner("Processing image..."):
         try:
+            # Display file details for debugging
+            display_file_details(file)
+
             # Try to open the uploaded image using PIL
             image = Image.open(file)
             if image is None:
@@ -170,23 +82,17 @@ else:
             # Display the uploaded image
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
-            # Perform crack localization (do not overwrite the image variable)
-            crack_pos = crack_position(file)  # crack_position should be called with image
-            st.image(crack_pos, caption="Crack Location in the image", use_column_width=True)
-
             # Perform prediction
             predictions = import_and_predict(image, model)
             if predictions is not None:
-                predicted_class = np.argmax(predictions[0])  # Get the class with the highest probability
-                prediction_percentages = predictions[0] * 100  # Convert to percentages
+                predicted_class = np.argmax(predictions[0])
+                prediction_percentages = predictions[0] * 100
                 
-                # Display prediction percentages for each class
                 st.write(f"**Prediction Percentages:**")
                 st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 
-                # Display the predicted class
                 if predicted_class == 0:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
@@ -195,9 +101,5 @@ else:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
-        
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
-
-# Footer
-st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
