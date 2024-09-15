@@ -75,7 +75,15 @@ def import_and_predict(image_data, model):
         # Convert original image to numpy array (for blending)
         original_img_np = np.array(image_data)
 
-        # Resize the original image to match the input image shape (224x224) for blending
+        # Ensure the original image is in 3 channels (RGB) for blending
+        if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
+            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
+
+        # Check if the number of channels in both images matches (3 for RGB)
+        if original_img_np.shape[2] != 3:
+            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_RGBA2RGB)
+
+        # Resize the original image to match the heatmap size
         original_resized = cv2.resize(original_img_np, size, interpolation=cv2.INTER_LINEAR)
 
         # Overlay the heatmap onto the resized image
@@ -108,6 +116,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 # Debugging wrapper to display file details
 def display_file_details(uploaded_file):
