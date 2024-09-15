@@ -66,31 +66,27 @@ def import_and_predict(image_data, model):
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map /= np.max(heat_map)  # Normalize to 0-1
 
-        # Resize heatmap to the size of the original image
-        heatmap_resized = cv2.resize(heat_map, (original_size[0], original_size[1]), interpolation=cv2.INTER_LINEAR)
+        # Resize heatmap to the size of the resized image (224, 224)
+        heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
 
         # Apply colormap to the heatmap for better visualization
         heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
 
-        # Convert original image to numpy array (for blending)
-        original_img_np = np.array(image_data)
+        # Convert resized image to numpy array for blending
+        image_resized_np = np.array(image_resized)
 
-        # Ensure the original image is in 3 channels (RGB) for blending
-        if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
-            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
+        # Ensure the resized image is in RGB for blending
+        if len(image_resized_np.shape) == 2:  # If grayscale, convert to RGB
+            image_resized_np = cv2.cvtColor(image_resized_np, cv2.COLOR_GRAY2RGB)
 
-        # Check if the number of channels in both images matches (3 for RGB)
-        if original_img_np.shape[2] != 3:
-            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_RGBA2RGB)
+        # Blend the heatmap with the resized image
+        overlay_img_resized = cv2.addWeighted(cv2.cvtColor(image_resized_np, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
 
-        # Resize the original image to match the heatmap size
-        original_resized = cv2.resize(original_img_np, (original_size[0], original_size[1]), interpolation=cv2.INTER_LINEAR)
-
-        # Overlay the heatmap onto the resized image
-        overlay_img = cv2.addWeighted(cv2.cvtColor(original_resized, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
+        # Resize the overlaid image back to its original size
+        overlay_img_original_size = cv2.resize(overlay_img_resized, original_size, interpolation=cv2.INTER_LINEAR)
 
         # Convert back to RGB for display in Streamlit
-        overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
+        overlay_img_rgb = cv2.cvtColor(overlay_img_original_size, cv2.COLOR_BGR2RGB)
         
         # Convert to a PIL Image for display in Streamlit
         overlay_pil = Image.fromarray(overlay_img_rgb)
@@ -113,6 +109,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 
 
