@@ -123,7 +123,7 @@ def crack_position(image, threshold=0.5):
         # Preprocess the uploaded image
         # img = Image.open(image)
         img = image.convert("RGB")
-        img = ImageOps.fit(image, size, Image.LANCZOS)
+        img = ImageOps.fit(img, size, Image.LANCZOS)
         img = img.resize((224, 224))
         img = np.array(img)
         
