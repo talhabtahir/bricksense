@@ -118,7 +118,7 @@ def import_and_predict(image_data, model):
 custom_model = Model(inputs=model.inputs,
                      outputs=(model.layers[10].output, model.layers[-1].output))
 
-def process_and_visualize_image(image, threshold=0.5):
+def crack_position(image, threshold=0.5):
     try:
         # Preprocess the uploaded image
         img = Image.open(image)
