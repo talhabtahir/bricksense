@@ -43,46 +43,49 @@ def import_and_predict(image_data, model):
         image = ImageOps.fit(image, size, Image.LANCZOS)
         img = np.asarray(image).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
-        prediction = model.predict(img_reshape)
-
-        custom_model = Model(inputs=model.inputs, 
-        outputs=(model.layers[8].output, model.layers[-1].output))  # `conv2d_3` and predictions
-
-        # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(img_reshape/255.0)
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
         
-        # Prediction for the image
+        # Get predictions from the model
+        custom_model = Model(inputs=model.inputs, 
+                             outputs=(model.layers[8].output, model.layers[-1].output))  # `conv2d_3` and predictions
+        conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
+        
+        # Get the predicted class and confidence
         pred = np.argmax(pred_vec)
         
-        # Resize the conv2d_3 output to match the input image size
-        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)  # (224, 224, 32)
+        # Reshape the conv2d_3 output and prepare the heatmap
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
+        heat_map = np.mean(conv2d_3_output, axis=-1)  # Average across the depth dimension (32 filters)
         
-        # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (224, 224)
+        # Resize the heatmap to match the input image size
+        heat_map_resized = cv2.resize(heat_map, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
         
-        # Normalize the heatmap for better visualization
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+        # Normalize the heatmap between 0 and 1
+        heat_map_resized = np.maximum(heat_map_resized, 0)  # ReLU to eliminate negative values
+        heat_map_resized = heat_map_resized / np.max(heat_map_resized)  # Normalize between 0 and 1
         
-        # Threshold the heatmap to get the regions with the highest activation
-        threshold = 0.5  # You can adjust this threshold
-        heat_map_thresh = np.uint8(255 * heat_map)  # Convert heatmap to 8-bit image
-        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
+        # Create the overlay by blending the heatmap with the original image
+        heat_map_colored = cv2.applyColorMap(np.uint8(255 * heat_map_resized), cv2.COLORMAP_JET)
+        overlay_img = cv2.addWeighted(cv2.cvtColor(np.uint8(img * 255), cv2.COLOR_RGB2BGR), 0.6, heat_map_colored, 0.4, 0)
+
+        # Convert the overlay image back to RGB for displaying
+        overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
         
-        # Find contours in the thresholded heatmap
+        # Threshold the heatmap to focus on important regions
+        _, thresh_map = cv2.threshold(np.uint8(heat_map_resized * 255), 127, 255, cv2.THRESH_BINARY)
+        
+        # Find contours on the thresholded map
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
-        # Draw contours along the heatmap regions
-        contoured_img = img.copy()
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
+        # Draw contours on the overlay image
+        contoured_img = overlay_img_rgb.copy()
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Green contours
         
-        # Plot the original image with heatmap and contours overlaid
+        # Create a figure to display the results
         fig, ax = plt.subplots()
-        ax.imshow(contoured_img)  # Image with contours (lines)
-        ax.imshow(heat_map, cmap='jet', alpha=0.4)  # Overlay heatmap with transparency
+        ax.imshow(contoured_img)
+        ax.axis('off')  # Hide the axes for a cleaner visualization
         
-        return prediction, fig  # Return the figure instead of `plt.show()`
+        return pred_vec, fig
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
@@ -124,7 +127,7 @@ else:
             # Perform prediction
             predictions, heatmap_fig = import_and_predict(image, model)
             if predictions is not None:
-                predicted_class = np.argmax(predictions[0])
+                predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
 
                 st.write(f"**Prediction Percentages:**")
