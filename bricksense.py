@@ -82,6 +82,15 @@ def import_and_predict(image_data, model):
         # Blend the heatmap with the resized image
         overlay_img_resized = cv2.addWeighted(cv2.cvtColor(image_resized_np, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
 
+        # Threshold the heatmap to get regions of interest
+        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
+        
+        # Find contours in the thresholded heatmap
+        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Draw contours on the resized image
+        cv2.drawContours(overlay_img_resized, contours, -1, (0, 255, 0), 2)  # Green contours
+
         # Resize the overlaid image back to its original size
         overlay_img_original_size = cv2.resize(overlay_img_resized, original_size, interpolation=cv2.INTER_LINEAR)
 
@@ -91,18 +100,9 @@ def import_and_predict(image_data, model):
         # Convert to a PIL Image for display in Streamlit
         overlay_pil = Image.fromarray(overlay_img_rgb)
 
-        # Threshold the heatmap to get regions of interest
-        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
-        
-        # Find contours in the thresholded heatmap
-        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # Draw contours on the resized image
-        cv2.drawContours(overlay_img_rgb, contours, -1, (0, 255, 0), 2)  # Green contours
-
         # Create a figure to display the results
         fig, ax = plt.subplots(figsize=(8, 8))  # Adjust figure size for better clarity
-        ax.imshow(overlay_img_rgb)
+        ax.imshow(overlay_pil)
         ax.axis('off')  # Hide the axes for a cleaner visualization
         
         return pred_vec, fig
