@@ -169,18 +169,25 @@ if file is None:
 else:
     with st.spinner("Processing image..."):
         try:
-            # Display the uploaded image
+            # Try to open the uploaded image using PIL
             image = Image.open(file)
-            
+            if image is None:
+                raise ValueError("Uploaded file is not a valid image.")
+
             # Correct the orientation if necessary
             image = correct_orientation(image)
-            
+
+            # Ensure the image format is valid
+            if image.format not in ["JPEG", "PNG", "BMP", "TIFF", "WEBP"]:
+                raise ValueError("Unsupported image format. Please upload JPG, PNG, BMP, TIFF, or WEBP files.")
+
+            # Display the uploaded image
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Perform crack localization (do not overwrite the image variable)
             crack_pos = crack_position(file)  # crack_position should be called with image
             st.image(crack_pos, caption="Crack Location in the image", use_column_width=True)
-            
+
             # Perform prediction
             predictions = import_and_predict(image, model)
             if predictions is not None:
