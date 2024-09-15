@@ -117,22 +117,22 @@ def crack_position(image_pos):
     try:
         # Read the uploaded image file
         custom_model = tf.keras.models.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
-        # img = Image.open(file)
-        # img = img.resize((224, 224))
-        # img = np.array(img)
+        img = Image.open(image_pos)
+        img = img.resize((224, 224))
+        img = np.array(img)
     
         # # Display the uploaded image
         # # st.image(img, caption="Uploaded Image", use_column_width=True)
     
         # # Preprocess the image for prediction
-        # img_tensor = np.expand_dims(img, axis=0) / 255.0
-        # preprocessed_img = img_tensor
-        size = (224, 224)
-        image = image_pos.convert("RGB")
-        image = ImageOps.fit(image, size, Image.LANCZOS)
-        img = np.asarray(image)#.astype(np.float32)
-        # img_reshape = img[np.newaxis, ...]/255.0  # Add batch dimension
         img_reshape = np.expand_dims(img, axis=0) / 255.0
+        # preprocessed_img = img_tensor
+        # size = (224, 224)
+        # image = image_pos.convert("RGB")
+        # image = ImageOps.fit(image, size, Image.LANCZOS)
+        # img = np.asarray(image)#.astype(np.float32)
+        # img_reshape = img[np.newaxis, ...]/255.0  # Add batch dimension
+        # img_reshape = np.expand_dims(img, axis=0) / 255.0
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
         conv2d_3_output = np.squeeze(conv2d_3_output)
