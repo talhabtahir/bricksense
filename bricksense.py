@@ -4,6 +4,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 from keras.models import Model
+import matplotlib.pyplot as plt
 
 @st.cache_resource
 def load_model():
