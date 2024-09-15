@@ -38,9 +38,11 @@ def correct_orientation(image):
 
 def import_and_predict(image_data, model):
     try:
-        # Process the image for model prediction (resize to 224x224)
-        original_size = image_data.size
+        # Get original image size
+        original_size = image_data.size  # (width, height)
         size = (224, 224)
+
+        # Resize the image for model prediction
         image_resized = image_data.convert("RGB")
         image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
         img = np.asarray(image_resized).astype(np.float32) / 255.0
@@ -54,43 +56,53 @@ def import_and_predict(image_data, model):
         # Get the predicted class and confidence
         pred = np.argmax(pred_vec)
 
-        # Reshape the conv2d_3 output and prepare the heatmap
-        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
-        heat_map = np.mean(conv2d_3_output, axis=-1)  # Average across the depth dimension (32 filters)
-
-        # Resize the heatmap to match the **original** image size
-        heat_map_resized = cv2.resize(heat_map, original_size, interpolation=cv2.INTER_LINEAR)
+        # Extract the feature map output
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # Shape (28, 28, 32)
         
-        # Normalize the heatmap between 0 and 1
-        heat_map_resized = np.maximum(heat_map_resized, 0)  # ReLU to eliminate negative values
-        heat_map_resized = heat_map_resized / np.max(heat_map_resized)  # Normalize between 0 and 1
+        # Average across the depth dimension (32 filters) to generate the heatmap
+        heat_map = np.mean(conv2d_3_output, axis=-1)  # Shape (28, 28)
 
-        # Create the overlay by blending the heatmap with the original image
-        heat_map_colored = cv2.applyColorMap(np.uint8(255 * heat_map_resized), cv2.COLORMAP_JET)
-        overlay_img = cv2.addWeighted(cv2.cvtColor(np.array(image_data), cv2.COLOR_RGB2BGR), 0.6, heat_map_colored, 0.4, 0)
+        # Normalize the heatmap between 0 and 1 for better visualization
+        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+        heat_map /= np.max(heat_map)  # Normalize to 0-1
 
-        # Convert the overlay image back to RGB for displaying
+        # Resize heatmap to match original image size, keeping the aspect ratio
+        heatmap_resized = cv2.resize(heat_map, original_size, interpolation=cv2.INTER_LINEAR)
+
+        # Apply colormap to the heatmap for better visualization
+        heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
+
+        # Convert original image to numpy array (for blending)
+        original_img_np = np.array(image_data)
+
+        # Overlay the heatmap onto the original image (with transparency)
+        overlay_img = cv2.addWeighted(cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
+
+        # Convert the overlay back to RGB for display in Streamlit
         overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
         
-        # Threshold the heatmap to focus on important regions
-        _, thresh_map = cv2.threshold(np.uint8(heat_map_resized * 255), 127, 255, cv2.THRESH_BINARY)
+        # Convert to a PIL Image for display in Streamlit
+        overlay_pil = Image.fromarray(overlay_img_rgb)
+
+        # Threshold the heatmap to get regions of interest
+        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
         
-        # Find contours on the thresholded map
+        # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         
         # Draw contours on the overlay image
-        contoured_img = overlay_img_rgb.copy()
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Green contours
-        
+        cv2.drawContours(overlay_img_rgb, contours, -1, (0, 255, 0), 2)  # Green contours
+
         # Create a figure to display the results
         fig, ax = plt.subplots(figsize=(8, 8))  # Adjust figure size for better clarity
-        ax.imshow(contoured_img)
+        ax.imshow(overlay_img_rgb)
         ax.axis('off')  # Hide the axes for a cleaner visualization
         
         return pred_vec, fig
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 # Debugging wrapper to display file details
 def display_file_details(uploaded_file):
