@@ -43,7 +43,46 @@ def import_and_predict(image_data, model):
         img = np.asarray(image).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
         prediction = model.predict(img_reshape)
-        return prediction
+
+        custom_model = Model(inputs=model.inputs, 
+        outputs=(model.layers[8].output, model.layers[-1].output))  # `conv2d_3` and predictions
+
+        # Get the conv2d_3 output and the predictions
+        conv2d_3_output, pred_vec = custom_model.predict(img_reshape/255.0)
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
+        
+        # Prediction for the image
+        pred = np.argmax(pred_vec)
+        
+        # Resize the conv2d_3 output to match the input image size
+        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)  # (224, 224, 32)
+        
+        # Average all the filters from conv2d_3 to get a single activation map
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters, resulting in (224, 224)
+        
+        # Normalize the heatmap for better visualization
+        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+        
+        # Threshold the heatmap to get the regions with the highest activation
+        threshold = 0.5  # You can adjust this threshold
+        heat_map_thresh = np.uint8(255 * heat_map)  # Convert heatmap to 8-bit image
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
+        
+        # Find contours in the thresholded heatmap
+        contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Draw contours along the heatmap regions
+        contoured_img = img.copy()
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
+        
+        
+        # Plot the original image with heatmap and contours overlaid
+        fig, ax = plt.subplots()
+        ax.imshow(contoured_img)  # Image with contours (lines)
+        ax.imshow(heat_map, cmap='jet', alpha=0.4)  # Overlay heatmap with transparency
+        image_con = plt.show()
+        return prediction, image_con
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
@@ -87,7 +126,7 @@ else:
             if predictions is not None:
                 predicted_class = np.argmax(predictions[0])
                 prediction_percentages = predictions[0] * 100
-                
+
                 st.write(f"**Prediction Percentages:**")
                 st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
@@ -97,6 +136,8 @@ else:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
                     st.error(f"❌ This wall is a cracked brick wall.")
+                    st.image(image_con, caption="Uploaded Image", use_column_width=True)
+
                 elif predicted_class == 2:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
