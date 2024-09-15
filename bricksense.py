@@ -121,7 +121,9 @@ custom_model = Model(inputs=model.inputs,
 def crack_position(image, threshold=0.5):
     try:
         # Preprocess the uploaded image
-        img = Image.open(image)
+        # img = Image.open(image)
+        img = image.convert("RGB")
+        img = ImageOps.fit(image, size, Image.LANCZOS)
         img = img.resize((224, 224))
         img = np.array(img)
         
