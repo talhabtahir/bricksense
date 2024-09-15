@@ -38,34 +38,36 @@ def correct_orientation(image):
 
 def import_and_predict(image_data, model):
     try:
+        # Process the image for model prediction (resize to 224x224)
+        original_size = image_data.size
         size = (224, 224)
-        image = image_data.convert("RGB")
-        image = ImageOps.fit(image, size, Image.LANCZOS)
-        img = np.asarray(image).astype(np.float32) / 255.0
+        image_resized = image_data.convert("RGB")
+        image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
+        img = np.asarray(image_resized).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
-        
+
         # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[10].output, model.layers[-1].output))  # `conv2d_3` and predictions
+                             outputs=(model.layers[8].output, model.layers[-1].output))  # `conv2d_3` and predictions
         conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
         
         # Get the predicted class and confidence
         pred = np.argmax(pred_vec)
-        
+
         # Reshape the conv2d_3 output and prepare the heatmap
         conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
         heat_map = np.mean(conv2d_3_output, axis=-1)  # Average across the depth dimension (32 filters)
-        
-        # Resize the heatmap to match the input image size
-        heat_map_resized = cv2.resize(heat_map, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
+
+        # Resize the heatmap to match the **original** image size
+        heat_map_resized = cv2.resize(heat_map, original_size, interpolation=cv2.INTER_LINEAR)
         
         # Normalize the heatmap between 0 and 1
         heat_map_resized = np.maximum(heat_map_resized, 0)  # ReLU to eliminate negative values
         heat_map_resized = heat_map_resized / np.max(heat_map_resized)  # Normalize between 0 and 1
-        
+
         # Create the overlay by blending the heatmap with the original image
         heat_map_colored = cv2.applyColorMap(np.uint8(255 * heat_map_resized), cv2.COLORMAP_JET)
-        overlay_img = cv2.addWeighted(cv2.cvtColor(np.uint8(img * 255), cv2.COLOR_RGB2BGR), 0.6, heat_map_colored, 0.4, 0)
+        overlay_img = cv2.addWeighted(cv2.cvtColor(np.array(image_data), cv2.COLOR_RGB2BGR), 0.6, heat_map_colored, 0.4, 0)
 
         # Convert the overlay image back to RGB for displaying
         overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
@@ -81,7 +83,7 @@ def import_and_predict(image_data, model):
         cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Green contours
         
         # Create a figure to display the results
-        fig, ax = plt.subplots()
+        fig, ax = plt.subplots(figsize=(8, 8))  # Adjust figure size for better clarity
         ax.imshow(contoured_img)
         ax.axis('off')  # Hide the axes for a cleaner visualization
         
