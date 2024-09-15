@@ -4,6 +4,7 @@ from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
+from keras.models import Model
 
 # Set the page configuration with favicon
 st.set_page_config(
