@@ -77,16 +77,15 @@ def import_and_predict(image_data, model):
         contoured_img = img.copy()
         cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours (lines)
         
-        
         # Plot the original image with heatmap and contours overlaid
         fig, ax = plt.subplots()
         ax.imshow(contoured_img)  # Image with contours (lines)
         ax.imshow(heat_map, cmap='jet', alpha=0.4)  # Overlay heatmap with transparency
-        image_con = plt.show()
-        return prediction, image_con
+        
+        return prediction, fig  # Return the figure instead of `plt.show()`
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
-        return None
+        return None, None
 
 # Debugging wrapper to display file details
 def display_file_details(uploaded_file):
@@ -123,7 +122,7 @@ else:
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Perform prediction
-            predictions = import_and_predict(image, model)
+            predictions, heatmap_fig = import_and_predict(image, model)
             if predictions is not None:
                 predicted_class = np.argmax(predictions[0])
                 prediction_percentages = predictions[0] * 100
@@ -137,8 +136,8 @@ else:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
                     st.error(f"❌ This wall is a cracked brick wall.")
-                    st.image(image_con, caption="Uploaded Image", use_column_width=True)
-
+                    # Display the heatmap and contours figure
+                    st.pyplot(heatmap_fig)
                 elif predicted_class == 2:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
