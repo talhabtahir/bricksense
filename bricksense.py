@@ -43,17 +43,13 @@ st.markdown(
 imagelogo = Image.open("static/sidelogo.png")
 st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
 
-# Add space below the logo
-st.write("")  # Creates a blank line
-st.write(" ")  # Creates an extra line for more space
-st.write(" ")  # Adjust the number of empty lines for desired spacing
-# Header with an icon
-# st.markdown("<h1 class='main-header'>🧱 Brick Detection 🧱</h1>", unsafe_allow_html=True)
- # Sidebar navigation with icons
+# Sidebar for app information
 st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
-st.sidebar.markdown("### ")
-st.sidebar.markdown("### ")
-st.sidebar.markdown("### ")
+st.sidebar.header("About This App")
+st.sidebar.write("""
+This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. 
+You can upload an image, and the app will analyze it to provide a prediction.
+""")
 
 @st.cache_resource
 def load_model():
@@ -66,38 +62,24 @@ def load_model():
 
 model = load_model()
 
-# Sidebar for app information
-st.sidebar.header("About This App")
-st.sidebar.write("""
-This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. 
-You can upload an image, and the app will analyze it to provide a prediction.
-""")
-st.sidebar.write("""
-**Developed by:**  
-Talha Bin Tahir  
-**Email:** talhabtahir@gmail.com
-""")
-
-# Main area for image upload
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
-
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
     try:
-        for orientation in ExifTags.TAGS.keys():
-            if ExifTags.TAGS[orientation] == 'Orientation':
-                break
-        exif = image._getexif()
-        if exif is not None:
-            orientation = exif.get(orientation, 1)
-            if orientation == 3:
-                image = image.rotate(180, expand=True)
-            elif orientation == 6:
-                image = image.rotate(270, expand=True)
-            elif orientation == 8:
-                image = image.rotate(90, expand=True)
-    except (AttributeError, KeyError, IndexError):
-        pass
+        if hasattr(image, '_getexif'):
+            for orientation in ExifTags.TAGS.keys():
+                if ExifTags.TAGS[orientation] == 'Orientation':
+                    break
+            exif = image._getexif()
+            if exif is not None:
+                orientation = exif.get(orientation, 1)
+                if orientation == 3:
+                    image = image.rotate(180, expand=True)
+                elif orientation == 6:
+                    image = image.rotate(270, expand=True)
+                elif orientation == 8:
+                    image = image.rotate(90, expand=True)
+    except Exception as e:
+        st.error(f"Error correcting orientation: {e}")
     return image
 
 # Function to make predictions using the TensorFlow model
@@ -113,17 +95,16 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
-        
+
 # Define a custom model for Grad-CAM output
-custom_model = Model(inputs=model.inputs,
-                     outputs=(model.layers[10].output, model.layers[-1].output))
+if model is not None:
+    custom_model = Model(inputs=model.inputs,
+                         outputs=(model.layers[10].output, model.layers[-1].output))
 
 def crack_position(image, threshold=0.5):
     try:
         # Preprocess the uploaded image
         img = Image.open(image)
-        # img = image.convert("RGB")
-        # img = ImageOps.fit(img, size, Image.LANCZOS)
         img = img.resize((224, 224))
         img = np.array(img)
         
@@ -162,8 +143,11 @@ def crack_position(image, threshold=0.5):
         # Display the image with contours using Streamlit
         st.image(contoured_img_only, caption='Image with Contours', use_column_width=True)
     except Exception as e:
-        st.error(f"An error occurred during prediction: {e}")
+        st.error(f"An error occurred during crack localization: {e}")
         return None
+
+# Main area for image upload
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
 
 # Check if a file was uploaded
 if file is None:
