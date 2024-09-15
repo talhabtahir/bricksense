@@ -67,7 +67,7 @@ def import_and_predict(image_data, model):
         heat_map /= np.max(heat_map)  # Normalize to 0-1
 
         # Resize heatmap to the size of the original image
-        heatmap_resized = cv2.resize(heat_map, original_size, interpolation=cv2.INTER_LINEAR)
+        heatmap_resized = cv2.resize(heat_map, (original_size[0], original_size[1]), interpolation=cv2.INTER_LINEAR)
 
         # Apply colormap to the heatmap for better visualization
         heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
@@ -84,16 +84,13 @@ def import_and_predict(image_data, model):
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_RGBA2RGB)
 
         # Resize the original image to match the heatmap size
-        original_resized = cv2.resize(original_img_np, size, interpolation=cv2.INTER_LINEAR)
+        original_resized = cv2.resize(original_img_np, (original_size[0], original_size[1]), interpolation=cv2.INTER_LINEAR)
 
         # Overlay the heatmap onto the resized image
-        overlay_img_resized = cv2.addWeighted(cv2.cvtColor(original_resized, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
-
-        # Now, resize the overlaid image back to its original size
-        overlay_img_original_size = cv2.resize(overlay_img_resized, original_size, interpolation=cv2.INTER_LINEAR)
+        overlay_img = cv2.addWeighted(cv2.cvtColor(original_resized, cv2.COLOR_RGB2BGR), 0.6, heatmap_colored, 0.4, 0)
 
         # Convert back to RGB for display in Streamlit
-        overlay_img_rgb = cv2.cvtColor(overlay_img_original_size, cv2.COLOR_BGR2RGB)
+        overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
         
         # Convert to a PIL Image for display in Streamlit
         overlay_pil = Image.fromarray(overlay_img_rgb)
@@ -116,6 +113,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 
 # Debugging wrapper to display file details
