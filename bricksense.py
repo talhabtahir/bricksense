@@ -75,18 +75,21 @@ def import_and_predict(image_data, model):
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Convert resized image to numpy array for contour drawing
-        image_resized_np = np.array(image_resized)
+        # Convert original image to numpy array (for contour drawing)
+        original_img_np = np.array(image_data)
 
-        # Ensure the resized image is in RGB
-        if len(image_resized_np.shape) == 2:  # If grayscale, convert to RGB
-            image_resized_np = cv2.cvtColor(image_resized_np, cv2.COLOR_GRAY2RGB)
+        # Ensure the original image is in 3 channels (RGB) for blending
+        if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
+            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
+
+        # Resize the original image to match the heatmap size (224, 224)
+        original_resized = cv2.resize(original_img_np, size, interpolation=cv2.INTER_LINEAR)
 
         # Draw contours on the resized image
-        cv2.drawContours(image_resized_np, contours, -1, (0, 255, 0), 2)  # Green contours
+        cv2.drawContours(original_resized, contours, -1, (0, 255, 0), 2)  # Green contours
 
         # Resize the image with contours back to its original size
-        contours_img_original_size = cv2.resize(image_resized_np, original_size, interpolation=cv2.INTER_LINEAR)
+        contours_img_original_size = cv2.resize(original_resized, original_size, interpolation=cv2.INTER_LINEAR)
 
         # Convert back to RGB for display in Streamlit
         contours_img_rgb = cv2.cvtColor(contours_img_original_size, cv2.COLOR_BGR2RGB)
@@ -104,16 +107,6 @@ def import_and_predict(image_data, model):
         st.error(f"An error occurred during prediction: {e}")
         return None, None
 
-
-
-
-# Debugging wrapper to display file details
-def display_file_details(uploaded_file):
-    st.write(f"Uploaded file type: {type(uploaded_file)}")
-    st.write(f"File name: {uploaded_file.name}")
-    st.write(f"File size: {uploaded_file.size} bytes")
-    st.write(f"File type: {uploaded_file.type}")
-
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
 
@@ -123,9 +116,6 @@ if file is None:
 else:
     with st.spinner("Processing image..."):
         try:
-            # Display file details for debugging
-            display_file_details(file)
-
             # Try to open the uploaded image using PIL
             image = Image.open(file)
             if image is None:
@@ -142,7 +132,7 @@ else:
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Perform prediction
-            predictions, heatmap_fig = import_and_predict(image, model)
+            predictions, contours_fig = import_and_predict(image, model)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -156,8 +146,8 @@ else:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
                     st.error(f"❌ This wall is a cracked brick wall.")
-                    # Display the heatmap and contours figure
-                    st.pyplot(heatmap_fig)
+                    # Display the contours figure
+                    st.pyplot(contours_fig)
                 elif predicted_class == 2:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
