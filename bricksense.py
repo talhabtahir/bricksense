@@ -112,44 +112,40 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
-# Function to localize the crack
-def crack_position(image_pos):
+        
+# Define a custom model for Grad-CAM output
+custom_model = Model(inputs=model.inputs,
+                     outputs=(model.layers[10].output, model.layers[-1].output))
+
+def process_and_visualize_image(image, threshold=0.5):
     try:
-        # Read the uploaded image file
-        custom_model = tf.keras.models.Model(inputs=model.inputs, outputs=(model.layers[10].output, model.layers[-1].output))
-        img = Image.open(image_pos)
+        # Preprocess the uploaded image
+        img = Image.open(image)
         img = img.resize((224, 224))
         img = np.array(img)
+        
+        img_tensor = np.expand_dims(img, axis=0) / 255.0
+        preprocessed_img = img_tensor
     
-        # # Display the uploaded image
-        # # st.image(img, caption="Uploaded Image", use_column_width=True)
-    
-        # # Preprocess the image for prediction
-        img_reshape = np.expand_dims(img, axis=0) / 255.0
-        # preprocessed_img = img_tensor
-        # size = (224, 224)
-        # image = image_pos.convert("RGB")
-        # image = ImageOps.fit(image, size, Image.LANCZOS)
-        # img = np.asarray(image)#.astype(np.float32)
-        # img_reshape = img[np.newaxis, ...]/255.0  # Add batch dimension
-        # img_reshape = np.expand_dims(img, axis=0) / 255.0
         # Get the conv2d_3 output and the predictions
-        conv2d_3_output, pred_vec = custom_model.predict(img_reshape)
-        conv2d_3_output = np.squeeze(conv2d_3_output)
+        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # 28x28x32 feature maps
     
         # Prediction for the image
         pred = np.argmax(pred_vec)
+        st.write(f"Prediction: {pred}")
     
-        # Resize the conv2d_3 output
+        # Resize the conv2d_3 output to match the input image size
         upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
     
-        # Generate heatmap
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)
-        heat_map = np.maximum(heat_map, 0)
-        heat_map = heat_map / heat_map.max()
+        # Average all the filters from conv2d_3 to get a single activation map
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # Take the mean of the 32 filters
     
-        # Threshold the heatmap to get the regions with the highest activation
-        threshold = 0.5
+        # Normalize the heatmap
+        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
+        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
+    
+        # Threshold the heatmap
         heat_map_thresh = np.uint8(255 * heat_map)
         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
     
@@ -157,22 +153,11 @@ def crack_position(image_pos):
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     
         # Draw contours on the original image
-        contoured_img_only = img.copy()
-        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)
+        contoured_img_only = img.copy()  # Copy original image
+        cv2.drawContours(contoured_img_only, contours, -1, (0, 255, 0), 2)  # Draw green contours
     
-        # Fetch the class name for the prediction
-        # predicted_class = class_dict[pred]
-    
-        # Display the image with contours and predicted class
-        crack_pos = st.image(contoured_img_only, use_column_width=True)
-    
-        # Optionally, you can add heatmap visualization
-        # fig, ax = plt.subplots()
-        # ax.imshow(img)
-        # ax.imshow(heat_map, cmap='jet', alpha=0.4)
-        # ax.set_title("Heatmap")
-        # st.pyplot(fig)
-        return crack_pos
+        # Display the image with contours using Streamlit
+        st.image(contoured_img_only, caption='Image with Contours', use_column_width=True)
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None
