@@ -101,7 +101,7 @@ def resize_image(image, target_size):
 
 from PIL import Image
 
-def resize_with_transparent_padding(image, target_size):
+def resize_with_padding(image, target_size):
     """
     Resize an image to the target size with transparent padding (in RGBA mode).
     
