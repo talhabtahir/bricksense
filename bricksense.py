@@ -94,8 +94,8 @@ def import_and_predict(image_data, model):
         # Resize the image with contours back to its original size
         contours_img_original_size = cv2.resize(original_resized, original_size, interpolation=cv2.INTER_LINEAR)
 
-        # Convert back to RGB for display in Streamlit
-        contours_img_rgb = cv2.cvtColor(contours_img_original_size, cv2.COLOR_BGR2RGB)
+        # # Convert back to RGB for display in Streamlit
+        # contours_img_rgb = cv2.cvtColor(contours_img_original_size, cv2.COLOR_BGR2RGB)
         
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
