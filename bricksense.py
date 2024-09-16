@@ -298,7 +298,7 @@ else:
                                 label1="Uploaded Image",
                                 label2="Cracks Localization",
                                 show_labels=False,
-                                # width=670,
+                                width=670,
                                 make_responsive=True,
                                 # in_memory=True
                             )
@@ -309,7 +309,7 @@ else:
                                 label1="Uploaded Image",
                                 label2="Cracks Localization",
                                 show_labels=False,
-                                # width=670,
+                                width=670,
                                 make_responsive=True,
                                 # in_memory=True
                             )
