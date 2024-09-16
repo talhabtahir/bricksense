@@ -300,7 +300,7 @@ else:
                                 show_labels=False,
                                 # width=670,
                                 make_responsive=True,
-                                in_memory=True
+                                # in_memory=True
                             )
                         else:
                            image_comparison(
@@ -311,7 +311,7 @@ else:
                                 show_labels=False,
                                 # width=670,
                                 make_responsive=True,
-                                in_memory=True
+                                # in_memory=True
                             )
 
                 # # Conditionally display image comparison
