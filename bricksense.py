@@ -2,9 +2,9 @@ import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
-import matplotlib.pyplot as plt
-from keras.models import Model
 import cv2
+from keras.models import Model
+from streamlit_image_comparison import image_comparison
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -39,6 +39,7 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
 st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
@@ -47,9 +48,8 @@ st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your
 st.write("")  # Creates a blank line
 st.write(" ")  # Creates an extra line for more space
 st.write(" ")  # Adjust the number of empty lines for desired spacing
-# Header with an icon
-# st.markdown("<h1 class='main-header'>🧱 Brick Detection 🧱</h1>", unsafe_allow_html=True)
- # Sidebar navigation with icons
+
+# Sidebar navigation with icons
 st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
@@ -68,12 +68,8 @@ model = load_model()
 
 # Sidebar for app information
 st.sidebar.header("About This App")
-st.sidebar.write("""
-This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. 
-You can upload an image, and the app will analyze it to provide a prediction.
-""")
-st.sidebar.write("""
-**Developed by:**  
+st.sidebar.write("""This app uses a Convolutional Neural Network (CNN) model to detect brick walls and classify them as either normal, cracked, or not a wall. You can upload an image, and the app will analyze it to provide a prediction.""")
+st.sidebar.write("""**Developed by:**  
 Talha Bin Tahir  
 **Email:** talhabtahir@gmail.com
 """)
@@ -100,19 +96,6 @@ def correct_orientation(image):
         pass
     return image
 
-# # Function to make predictions using the TensorFlow model
-# def import_and_predict(image_data, model):
-#     try:
-#         size = (224, 224)
-#         image = image_data.convert("RGB")
-#         image = ImageOps.fit(image, size, Image.LANCZOS)
-#         img = np.asarray(image).astype(np.float32) / 255.0
-#         img_reshape = img[np.newaxis, ...]  # Add batch dimension
-#         prediction = model.predict(img_reshape)
-#         return prediction
-#     except Exception as e:
-#         st.error(f"An error occurred during prediction: {e}")
-#         return None
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model, layer_index=10):
     try:
@@ -191,6 +174,7 @@ def import_and_predict(image_data, model, layer_index=10):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 # Check if a file was uploaded
 if file is None:
     st.info("Please upload an image file to start the detection.")
@@ -205,17 +189,9 @@ else:
             # Correct the orientation if necessary
             image = correct_orientation(image)
 
-            # Display the uploaded image and the contours side by side
-            col1, col2 = st.columns(2)
-            
-            with col1:
-                st.image(image, caption="Uploaded Image", use_column_width=True)
-
-                       # Add a slider for selecting the layer index dynamically
-            layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
-            
-             # Perform prediction
+            # Perform prediction
             predictions, contours_pil = import_and_predict(image, model, layer_index)
+
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -225,12 +201,14 @@ else:
                 st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
 
-                with col2:
-                    if predicted_class == 1:
-                        st.image(contours_pil, caption="Cracks Localization", use_column_width=True)
-                    else:
-                        st.warning(f"Contours are not applicable. This is not a cracked wall.")
-                
+                # Display the image comparison
+                image_comparison(
+                    img1=image, 
+                    img2=contours_pil,
+                    label1="Uploaded Image",
+                    label2="Cracks Localization"
+                )
+
                 # Display prediction result
                 if predicted_class == 0:
                     st.success(f"✅ This is a normal brick wall.")
