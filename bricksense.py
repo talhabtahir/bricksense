@@ -286,10 +286,10 @@ else:
                     # Add a slider for selecting the sensitivity dynamically
                     sensitivity = st.slider(
                         "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
-                        min_value=0.1,   # Minimum value for sensitivity
-                        max_value=2.0,   # Maximum value for sensitivity
-                        value=1.0,       # Default value for sensitivity
-                        step=0.1,        # Step for incremental changes
+                        min_value=1.0,   # Minimum value for sensitivity
+                        max_value=12.0,   # Maximum value for sensitivity
+                        value=8.0,       # Default value for sensitivity
+                        step=1.0,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
     )
                 
