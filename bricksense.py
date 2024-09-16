@@ -194,7 +194,7 @@ def import_and_predict(image_data, model):
         scaled_contours = scale_contours(contours, scale_x, scale_y)
 
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -2, (255, 0, 0), contour_thickness)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, 0, (255, 0, 0), contour_thickness)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
