@@ -188,6 +188,7 @@ def import_and_predict(image_data, model):
         scaled_contours = scale_contours(contours, scale_x, scale_y)
 
         # Pen thickess for contours
+        pen_thickness = 2
         if max(original_width, original_height)<300:
             pen_thickness = 2
         elif max(original_width, original_height)<500:
