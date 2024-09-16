@@ -78,25 +78,17 @@ def import_and_predict(image_data, model):
         # Convert original image to numpy array (for contour drawing)
         original_img_np = np.array(image_data)
 
-        # Ensure the original image is in 3 channels (RGB) for blending
+        # Ensure the original image is in 3 channels (RGB) for contour drawing
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Resize the original image to match the heatmap size (224, 224)
-        original_resized = cv2.resize(original_img_np, size, interpolation=cv2.INTER_LINEAR)
+        # Draw contours on the original image without resizing (in blue BGR: (255, 0, 0))
+        original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
+        cv2.drawContours(original_img_bgr, contours, -1, (255, 0, 0), 2)  # Blue contours
 
-        # Draw contours on the resized image
-        cv2.drawContours(original_resized, contours, -1, (0, 255, 0), 2)  # Green contours
+        # Convert the image back to RGB
+        contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
 
-        # Convert the original resized image from BGR to RGB for proper color display
-        contours_img_rgb = cv2.cvtColor(original_resized, cv2.COLOR_BGR2RGB)
-
-        # Resize the image with contours back to its original size
-        contours_img_original_size = cv2.resize(original_resized, original_size, interpolation=cv2.INTER_LINEAR)
-
-        # # Convert back to RGB for display in Streamlit
-        # contours_img_rgb = cv2.cvtColor(contours_img_original_size, cv2.COLOR_BGR2RGB)
-        
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
 
@@ -109,6 +101,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
