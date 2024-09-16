@@ -86,7 +86,7 @@ def import_and_predict(image_data, model):
         original_resized = cv2.resize(original_img_np, size, interpolation=cv2.INTER_LINEAR)
 
         # Draw contours on the resized image
-        cv2.drawContours(original_resized, contours, -1, (0, 255, 0), 2)  # Green contours
+        cv2.drawContours(original_resized, contours, -1, (255, 0, 0), 2)  # Green contours
 
         # Resize the image with contours back to its original size
         contours_img_original_size = cv2.resize(original_resized, original_size, interpolation=cv2.INTER_LINEAR)
