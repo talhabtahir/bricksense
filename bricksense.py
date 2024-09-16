@@ -214,7 +214,7 @@ else:
                 st.write(f"**Prediction Percentages:**")
                 # Display predictions in one line
                 st.markdown(f"""
-                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #000;">
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; color: #000; #e0e0e0; background-color: #333; padding: 10px; border-radius: 5px;">
                         <div style="text-align: center; flex: 1;">🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%</div>
                         <div style="text-align: center; flex: 1;">🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%</div>
                         <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
