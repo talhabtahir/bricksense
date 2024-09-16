@@ -89,7 +89,7 @@ def import_and_predict(image_data, model, layer_index=10):
 
         # Draw contours on the original image using the same color and thickness as Code 1
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-        cv2.drawContours(original_img_bgr, contours, -1, (57, 255, 20), 2)  # Green contours (BGR)
+        cv2.drawContours(original_img_bgr, contours, -1, (255, 0, 0), 2)  # Green contours (BGR)
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
