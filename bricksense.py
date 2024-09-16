@@ -211,10 +211,20 @@ else:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
 
+                 # Display prediction result
+                if predicted_class == 0:
+                    st.success(f"✅ This is a normal brick wall.")
+                elif predicted_class == 1:
+                    st.error(f"❌ This wall is a cracked brick wall.")
+                elif predicted_class == 2:
+                    st.warning(f"⚠️ This is not a brick wall.")
+                else:
+                    st.error(f"❓ Unknown prediction result: {predicted_class}")
+
                 st.write(f"**Prediction Percentages:**")
                 # Display predictions in one line
                 st.markdown(f"""
-                    <div style="display: flex; justify-content: space-between; font-size: 16px; color: #e0e0e0; background-color: #333; padding: 4px; border-radius: 5px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 16px; color: #e0e0e0; background-color: #D3D3D3; padding: 3px; border-radius: 7px;">
                         <div style="text-align: center; flex: 1;">🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%</div>
                         <div style="text-align: center; flex: 1;">🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%</div>
                         <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
@@ -234,15 +244,7 @@ else:
                     show_labels = True
                 )
 
-                # Display prediction result
-                if predicted_class == 0:
-                    st.success(f"✅ This is a normal brick wall.")
-                elif predicted_class == 1:
-                    st.error(f"❌ This wall is a cracked brick wall.")
-                elif predicted_class == 2:
-                    st.warning(f"⚠️ This is not a brick wall.")
-                else:
-                    st.error(f"❓ Unknown prediction result: {predicted_class}")
+               
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
 
