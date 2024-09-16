@@ -95,6 +95,23 @@ def correct_orientation(image):
     except (AttributeError, KeyError, IndexError):
         pass
     return image
+# Adding Canvas Background
+def add_canvas(image, canvas_size=(244, 244), fill_color=(255, 255, 255)):
+    """Place the image on a canvas of specified size with white background."""
+    # Create a new image with the specified canvas size
+    canvas = Image.new("RGB", canvas_size, fill_color)
+    
+    # Calculate position to paste the image at the center of the canvas
+    paste_position = (
+        (canvas_size[0] - image.size[0]) // 2, 
+        (canvas_size[1] - image.size[1]) // 2
+    )
+    
+    # Paste the image onto the canvas
+    canvas.paste(image, paste_position)
+    
+    return canvas
+
 
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model):
@@ -188,7 +205,7 @@ def import_and_predict(image_data, model):
 
 def add_white_border(image, border_size):
     """Add a white border to the image."""
-    return ImageOps.expand(image, border_size, (255, 255, 255))
+    return ImageOps.expand(image, border= border_size, fill=(255, 255, 255))
 
 # Check if a file was uploaded
 if file is None:
@@ -230,7 +247,8 @@ else:
                         <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
                     </div>
                 """, unsafe_allow_html=True)
-                                
+                image_with_border = add_canvas(image_with_border)
+                contours_with_border = add_canvas(contours_with_border)               
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
