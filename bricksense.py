@@ -97,7 +97,7 @@ def correct_orientation(image):
     return image
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, model, layer_index=10):
+def import_and_predict(image_data, model):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
@@ -112,7 +112,7 @@ def import_and_predict(image_data, model, layer_index=10):
 
         # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[layer_index].output, model.layers[-1].output))
+                             outputs=(model.layers[10].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
 
         # Get the predicted class and confidence
@@ -190,7 +190,7 @@ else:
             image = correct_orientation(image)
 
             # Perform prediction
-            predictions, contours_pil = import_and_predict(image, model, 11)
+            predictions, contours_pil = import_and_predict(image, model)
 
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
