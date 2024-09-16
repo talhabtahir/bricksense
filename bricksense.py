@@ -235,16 +235,24 @@ else:
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
 
-                # Display the image comparison
-                image_comparison(
-                    img1=image_with_border, 
-                    img2=contours_with_border,
-                    label1="Uploaded Image",
-                    label2="Cracks Localization",
-                    show_labels = True
-                )
+               # Conditionally display image comparison
+                if predicted_class == 1:
+                    image_comparison(
+                        img1=image_with_border, 
+                        img2=contours_with_border,
+                        label1="Uploaded Image",
+                        label2="Cracks Localization",
+                        show_labels=True
+                    )
+                else:
+                   image_comparison(
+                        img1=image_with_border, 
+                        img2=image_with_border,
+                        label1="Uploaded Image",
+                        label2="Cracks Localization",
+                        show_labels=True
+                    )
 
-               
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
 
