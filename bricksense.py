@@ -175,7 +175,7 @@ def import_and_predict(image_data, model):
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
                 # Add white borders
-        border_size = 20  # Set the border size
+        border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(contours_pil, border_size)
 
