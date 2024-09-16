@@ -14,20 +14,20 @@ st.set_page_config(
 )
 
 # Function to set custom background color
-def set_background_color(background_color="#ffffff"):
-    st.markdown(
-        f"""
-        <style>
-        .stApp {{
-            background-color: {background_color};
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True
-    )
+# def set_background_color(background_color="#ffffff"):
+#     st.markdown(
+#         f"""
+#         <style>
+#         .stApp {{
+#             background-color: {background_color};
+#         }}
+#         </style>
+#         """,
+#         unsafe_allow_html=True
+#     )
 
-# Set background color to white
-set_background_color("#ffffff")
+# # Set background color to white
+# set_background_color("#ffffff")
 
 # Custom CSS for additional styling
 st.markdown(
