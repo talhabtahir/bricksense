@@ -212,9 +212,11 @@ else:
                 prediction_percentages = predictions[0] * 100
 
                 st.write(f"**Prediction Percentages:**")
-                st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
-                st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
-                st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
+                # Display predictions in one line
+                st.markdown(f"**Predictions:** Normal Wall: {prediction_percentages[0]:.2f}%, Cracked Wall: {prediction_percentages[1]:.2f}%, Not a Wall: {prediction_percentages[2]:.2f}%")
+                # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
+                # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
+                # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
 
                 # Display the image comparison
                 image_comparison(
