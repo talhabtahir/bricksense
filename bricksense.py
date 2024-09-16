@@ -99,23 +99,49 @@ def resize_image(image, target_size):
     """Resize the image to the target size, keeping the same aspect ratio."""
     return image.resize(target_size, Image.LANCZOS)
 
+from PIL import Image
+
 def resize_with_padding(image, target_size):
-    """Resize image to target size with padding to maintain aspect ratio."""
-    img_aspect = image.width / image.height
-    target_aspect = target_size[0] / target_size[1]
+    """
+    Resize an image to the target size with padding if necessary to maintain aspect ratio.
 
-    if img_aspect > target_aspect:
-        new_width = int(target_size[1] * img_aspect)
-        new_size = (new_width, target_size[1])
+    Parameters:
+    - image (PIL.Image.Image): The input image to be resized.
+    - target_size (tuple): The target size (width, height) for the output image.
+
+    Returns:
+    - PIL.Image.Image: The resized image with padding.
+    """
+    # Get the original image size
+    original_width, original_height = image.size
+
+    # Calculate the aspect ratio
+    aspect_ratio = original_width / original_height
+    target_width, target_height = target_size
+
+    # Calculate new dimensions and padding
+    if target_width / target_height > aspect_ratio:
+        # Width is the limiting factor
+        new_width = int(target_height * aspect_ratio)
+        new_height = target_height
     else:
-        new_height = int(target_size[0] / img_aspect)
-        new_size = (target_size[0], new_height)
+        # Height is the limiting factor
+        new_width = target_width
+        new_height = int(target_width / aspect_ratio)
 
-    resized_image = image.resize(new_size, Image.LANCZOS)
-    padded_image = Image.new("RGB", target_size, (255, 255, 255))
-    offset = ((target_size[0] - new_size[0]) // 2, (target_size[1] - new_size[1]) // 2)
-    padded_image.paste(resized_image, offset)
-    return padded_image
+    # Resize the image with the new dimensions
+    image_resized = image.resize((new_width, new_height), Image.LANCZOS)
+
+    # Create a new image with the target size and white background
+    new_image = Image.new("RGB", target_size, (255, 255, 255))
+    
+    # Paste the resized image onto the new image
+    left = (target_width - new_width) // 2
+    top = (target_height - new_height) // 2
+    new_image.paste(image_resized, (left, top))
+
+    return new_image
+
 
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model):
@@ -165,14 +191,13 @@ def import_and_predict(image_data, model):
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image, but scale contours to the original size
+        # Convert image to BGR for contour drawing
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
 
         # Scale contours back to original image size
         scale_x = original_width / size[0]
         scale_y = original_height / size[1]
         
-        # Adjust the scaling more precisely based on aspect ratio consistency
         def scale_contours(contours, scale_x, scale_y):
             scaled_contours = []
             for contour in contours:
@@ -191,17 +216,14 @@ def import_and_predict(image_data, model):
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
 
-        # --- Apply Brightness or Contrast Enhancement ---
+        # Apply Brightness or Contrast Enhancement
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-        # # Add white borders
-        # border_size = 10  # Set the border size
-        # image_with_border = add_white_border(image_data, border_size)
-        # contours_with_border = add_white_border(contours_pil, border_size)
+        # Define target size
+        target_size = (800, 800)
 
-        # Apply resizing with padding or without padding as needed
-        target_size = (800, 800)  # Define your target size
+        # Resize images with padding to target size
         image_with_border = resize_with_padding(image_data, target_size)
         contours_with_border = resize_with_padding(contours_pil, target_size)
 
@@ -209,6 +231,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
         
 # Adds border to the image
 
