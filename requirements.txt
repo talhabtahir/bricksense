@@ -6,3 +6,4 @@ torch
 opencv-python-headless
 ultralytics
 matplotlib
+streamlit-image-comparison
