@@ -98,10 +98,10 @@ def import_and_predict(image_data, model, layer_index=10):
         contours_pil = Image.fromarray(contours_img_rgb)
 
         # Return results for display
-        return pred_vec, contours_pil, heat_map
+        return pred_vec, contours_pil, heat_map, contours_img_rgb
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
-        return None, None, None
+        return None, None, None, None
 
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
     # Display the heatmap as an image
