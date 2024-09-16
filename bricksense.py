@@ -95,25 +95,34 @@ def import_and_predict(image_data, model, layer_index=10):
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
 
-        # Return results for display
-        return pred_vec, contours_img_rgb, heat_map, heatmap_resized
+        # Overlay heatmap on the original image
+        heatmap_colored = cv2.applyColorMap(np.uint8(255 * heatmap_resized), cv2.COLORMAP_JET)
+        overlay_img = cv2.addWeighted(original_img_bgr, 0.6, heatmap_colored, 0.4, 0)
+
+        # Convert overlay image to RGB
+        overlay_img_rgb = cv2.cvtColor(overlay_img, cv2.COLOR_BGR2RGB)
+
+        # Convert to a PIL Image for display in Streamlit
+        overlay_pil = Image.fromarray(overlay_img_rgb)
+
+        return pred_vec, contours_img_rgb, overlay_pil
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
-        return None, None, None, None
+        return None, None, None
 
-def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
+def visualize_heatmap_and_contours(overlay_pil, contours_img_rgb):
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
-    
-    # Plot the heatmap with color map
-    ax[0].imshow(heat_map, cmap='jet')
-    ax[0].set_title('Heatmap')
+
+    # Plot the overlay image with heatmap
+    ax[0].imshow(overlay_pil)
+    ax[0].set_title('Heatmap Overlay')
     ax[0].axis('off')
-    
+
     # Plot contours
     ax[1].imshow(contours_img_rgb)
     ax[1].set_title('Contours')
     ax[1].axis('off')
-    
+
     # Save the figure to a BytesIO object and return it
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
@@ -152,7 +161,7 @@ else:
             layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
 
             # Perform prediction
-            predictions, contours_pil, heat_map, heatmap_resized = import_and_predict(image, model, layer_index)
+            predictions, contours_pil, overlay_pil = import_and_predict(image, model, layer_index)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -164,7 +173,7 @@ else:
 
                 with col2:
                     if predicted_class == 1:
-                        st.image(contours_pil, caption="Cracks Localization", use_column_width=True)
+                        st.image(overlay_pil, caption="Heatmap Overlay", use_column_width=True)
                     else:
                         st.warning(f"Contours are not applicable. This is not a cracked wall.")
                 
@@ -179,7 +188,7 @@ else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
 
                 # Visualize the heatmap and contours
-                buf = visualize_heatmap_and_contours(heatmap_resized, contours_pil)
+                buf = visualize_heatmap_and_contours(overlay_pil, contours_pil)
                 st.image(buf, caption="Heatmap and Contours")
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
