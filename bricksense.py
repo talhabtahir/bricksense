@@ -104,22 +104,19 @@ def import_and_predict(image_data, model, layer_index=10):
         return None, None, None, None
 
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
-    # Display the heatmap as an image
-    fig, ax = plt.subplots(1, 2, figsize=(15, 7))
-
-    # Heatmap (original size)
+    # Visualize the heatmap
+    fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+    
     ax[0].imshow(heat_map, cmap='jet')
     ax[0].set_title('Heatmap')
     ax[0].axis('off')
-
-    # Contours on Original Image
-    contours_pil = Image.fromarray(contours_img_rgb)
-    ax[1].imshow(contours_pil)
-    ax[1].set_title('Contours on Original Image')
+    
+    # Visualize contours
+    ax[1].imshow(contours_img_rgb)
+    ax[1].set_title('Contours')
     ax[1].axis('off')
-
-    plt.tight_layout()
-    st.pyplot(fig)
+    
+    plt.show()
 
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
@@ -152,7 +149,7 @@ else:
             layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
 
             # Perform prediction
-            predictions, contours_pil, heat_map = import_and_predict(image, model, layer_index)
+            predictions, contours_pil, heat_map, contours_img_rgb = import_and_predict(image, model, layer_index)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
