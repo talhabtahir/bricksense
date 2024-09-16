@@ -254,7 +254,8 @@ else:
                         label2="Cracks Localization",
                         show_labels=True
                     )
-                
+                st.image(image_with_border, caption="Image with Border", use_column_width=True)
+                st.image(contours_with_border, caption="Image with Border", use_column_width=False)
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
 
