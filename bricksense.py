@@ -236,17 +236,7 @@ else:
             # Correct the orientation if necessary
             image = correct_orientation(image)
 
-            # Create an expander for sensitivity adjustment
-            with st.expander("🔍 Sensitivity Settings"):
-                # Add a slider for selecting the sensitivity dynamically
-                sensitivity = st.slider(
-                    "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
-                    min_value=1,   # Minimum value for sensitivity
-                    max_value=12,   # Maximum value for sensitivity
-                    value=10,       # Default value for sensitivity
-                    step=1,        # Step for incremental changes
-                    format="%.1f"    # Format to display sensitivity with one decimal
-                                        )
+            
             
             # Perform prediction
             predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
@@ -277,9 +267,19 @@ else:
 
                 st.write("")  # Creates a blank line
 
-                st.write("")  # Creates a blank line
+                # st.write("")  # Creates a blank line
 
-
+                # Create an expander for sensitivity adjustment
+                with st.expander("🔍 Sensitivity Settings"):
+                    # Add a slider for selecting the sensitivity dynamically
+                    sensitivity = st.slider(
+                        "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
+                        min_value=1,   # Minimum value for sensitivity
+                        max_value=12,   # Maximum value for sensitivity
+                        value=10,       # Default value for sensitivity
+                        step=1,        # Step for incremental changes
+                        format="%.1f"    # Format to display sensitivity with one decimal
+                                            )
                 
                 # Display the uploaded image and the contours side by side
                 col1, col2 = st.columns(2)
