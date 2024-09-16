@@ -36,7 +36,7 @@ def correct_orientation(image):
         st.error(f"Error correcting orientation: {e}")
     return image
 
-def import_and_predict(image_data, model, layer_index=10):
+def import_and_predict(image_data, model, layer_index=12):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
@@ -141,7 +141,7 @@ else:
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Add a slider for selecting the layer index dynamically
-            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-1, value=10)
+            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-3, value=12)
 
             # Perform prediction
             predictions, contours_fig = import_and_predict(image, model, layer_index)
