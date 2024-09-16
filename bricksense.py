@@ -252,6 +252,38 @@ else:
                         label2="Cracks Localization",
                         show_labels=True
                     )
+                st.markdown("""
+                    <style>
+                        .color-box {
+                            display: flex;
+                            justify-content: space-around;
+                            padding: 10px;
+                        }
+                        .color-box div {
+                            width: 100px;
+                            height: 100px;
+                            border-radius: 5px;
+                            text-align: center;
+                            line-height: 100px;
+                            color: white;
+                            font-weight: bold;
+                        }
+                        .color-blue { background-color: #0072B2; }
+                        .color-orange { background-color: #D55E00; }
+                        .color-green { background-color: #009E73; }
+                        .color-red { background-color: #F0E442; }
+                        .color-purple { background-color: #CC79A7; }
+                        .color-yellow { background-color: #F0E442; }
+                    </style>
+                    <div class="color-box">
+                        <div class="color-blue">Blue</div>
+                        <div class="color-orange">Orange</div>
+                        <div class="color-green">Green</div>
+                        <div class="color-red">Red</div>
+                        <div class="color-purple">Purple</div>
+                        <div class="color-yellow">Yellow</div>
+                    </div>
+                """, unsafe_allow_html=True)
 
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
