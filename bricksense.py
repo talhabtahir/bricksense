@@ -211,7 +211,7 @@ def import_and_predict(image_data, model):
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(contours_pil, border_size)
 
-        return pred_vec, image_with_border, contours_with_border        
+        return pred_vec, image_with_border, contours_with_border, contours_pil2     
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
@@ -263,6 +263,12 @@ else:
                     </div>
                 """, unsafe_allow_html=True)
 
+                st.write("")  # Creates a blank line
+
+                st.write("")  # Creates a blank line
+
+
+                
                 # Display the uploaded image and the contours side by side
                 col1, col2 = st.columns(2)
     
