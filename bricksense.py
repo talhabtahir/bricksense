@@ -196,7 +196,7 @@ def import_and_predict(image_data, model):
         elif max(original_width, original_height)<800:
             pen_thickness = 4
         elif max(original_width, original_height)<1000:
-            pen_thickness = 5
+            pen_thickness = 8
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
         cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), pen_thickness)  # Blue contours
 
