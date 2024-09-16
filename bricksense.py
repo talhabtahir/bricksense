@@ -1,6 +1,6 @@
 import streamlit as st
 import tensorflow as tf
-from PIL import Image, ImageOps, ExifTags, ImageEnhance, ImageFilter
+from PIL import Image, ImageOps, ExifTags, ImageEnhance
 import numpy as np
 import cv2
 from keras.models import Model
@@ -178,12 +178,6 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
-        
-# Function to apply edge enhancement using PIL
-def enhance_edges_pil(image_pil):
-    # Apply edge enhancement filter
-    enhanced_image = image_pil.filter(ImageFilter.EDGE_ENHANCE_MORE)
-    return enhanced_image
 
 # Check if a file was uploaded
 if file is None:
@@ -201,9 +195,6 @@ else:
 
             # Perform prediction
             predictions, contours_pil = import_and_predict(image, model)
-
-            # Load the image and enhance edges
-            contours_pil = enhance_edges_pil(contours_pil)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
