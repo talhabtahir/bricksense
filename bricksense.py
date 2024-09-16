@@ -117,11 +117,9 @@ def resize_image(image, target_size):
 
 from PIL import Image
 
-from PIL import Image
-
 def resize_with_padding(image, target_size):
     """
-    Resize an image to the target size with padding to maintain aspect ratio.
+    Resize an image to the target size with padding if necessary to maintain aspect ratio.
     
     Parameters:
     - image (PIL.Image.Image): The input image to be resized.
@@ -130,39 +128,39 @@ def resize_with_padding(image, target_size):
     Returns:
     - PIL.Image.Image: The resized image with padding.
     """
-    # Get original image size
+    # Get the original image size
     original_width, original_height = image.size
-    
-    # Calculate the aspect ratio of the original image
+
+    # Calculate the aspect ratio
     aspect_ratio = original_width / original_height
     target_width, target_height = target_size
-    
-    # Determine whether to fit by width or by height
+
+    # Calculate new dimensions while maintaining the aspect ratio
     if target_width / target_height > aspect_ratio:
-        # Fit by height
+        # Height is the limiting factor (portrait mode)
         new_height = target_height
         new_width = int(target_height * aspect_ratio)
     else:
-        # Fit by width
+        # Width is the limiting factor (landscape mode)
         new_width = target_width
         new_height = int(target_width / aspect_ratio)
 
     # Resize the image with the new dimensions
     image_resized = image.resize((new_width, new_height), Image.LANCZOS)
-    
-    # Create a new image with a white background and target size
+
+    # Create a new image with a white background and the target size
     new_image = Image.new("RGB", target_size, (255, 255, 255))
-    
+
     # Calculate the position to paste the resized image (centered)
     left = (target_width - new_width) // 2
     top = (target_height - new_height) // 2
-    
-    # Paste the resized image onto the new white background
+
+    # Ensure the calculated position is valid and paste the resized image
     new_image.paste(image_resized, (left, top))
-    
+    print(f"Original size: {original_width}x{original_height}")
+    print(f"New size: {new_width}x{new_height}")
+    print(f"Left padding: {left}, Top padding: {top}")
     return new_image
-
-
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
