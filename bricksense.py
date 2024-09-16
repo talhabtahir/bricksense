@@ -201,7 +201,7 @@ def import_and_predict(image_data, model):
         contours_with_border = add_white_border(contours_pil, border_size)
 
         # Apply resizing with padding or without padding as needed
-        target_size = (224, 224)  # Define your target size
+        target_size = (800, 800)  # Define your target size
         image_with_border = resize_with_padding(image_with_border, target_size)
         contours_with_border = resize_with_padding(contours_with_border, target_size)
 
