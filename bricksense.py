@@ -103,7 +103,7 @@ def add_canvas(image, padding=30, fill_color=(255, 255, 255)):
     image_width, image_height = image.size
     
     # Calculate new canvas size with padding
-    canvas_width = image_width + 2 * padding
+    canvas_width = image_width + ((2 * padding)//3)
     canvas_height = image_height + 2 * padding
     
     # Create a new image (canvas) with the calculated size
