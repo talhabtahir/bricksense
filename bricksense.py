@@ -235,7 +235,19 @@ else:
             
             # Correct the orientation if necessary
             image = correct_orientation(image)
-            sensitivity=11
+
+            # Create an expander for sensitivity adjustment
+            with st.expander("🔍 Sensitivity Settings"):
+                # Add a slider for selecting the sensitivity dynamically
+                sensitivity = st.slider(
+                    "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
+                    min_value=1.0,   # Minimum value for sensitivity
+                    max_value=12.0,   # Maximum value for sensitivity
+                    value=10.0,       # Default value for sensitivity
+                    step=1.0,        # Step for incremental changes
+                    format="%.1f"    # Format to display sensitivity with one decimal
+                                        )
+            
             # Perform prediction
             predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
             
@@ -281,17 +293,7 @@ else:
                         st.image(image, caption="No cracks detected", use_column_width=True)
 
 
-                # Create an expander for sensitivity adjustment
-                with st.expander("🔍 Sensitivity Settings"):
-                    # Add a slider for selecting the sensitivity dynamically
-                    sensitivity = st.slider(
-                        "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
-                        min_value=1.0,   # Minimum value for sensitivity
-                        max_value=12.0,   # Maximum value for sensitivity
-                        value=8.0,       # Default value for sensitivity
-                        step=1.0,        # Step for incremental changes
-                        format="%.1f"    # Format to display sensitivity with one decimal
-    )
+               
                 
                 image_with_border = add_canvas(image_with_border)
                 contours_with_border = add_canvas(contours_with_border)               
