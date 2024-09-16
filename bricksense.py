@@ -129,7 +129,7 @@ def import_and_predict(image_data, model):
         original_size = image_data.size  # (width, height)
         original_width, original_height = original_size
         size = (224, 224)  # Model input size
-
+        
         # Resize the image for model prediction
         image_resized = image_data.convert("RGB")
         image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
@@ -187,8 +187,17 @@ def import_and_predict(image_data, model):
 
         scaled_contours = scale_contours(contours, scale_x, scale_y)
 
+        # Pen thickess for contours
+        if max(original_width, original_height)<300:
+            pen_thickness = 2
+        elif max(original_width, original_height)<500:
+            pen_thickness = 3
+        elif max(original_width, original_height)<800:
+            pen_thickness = 4
+        elif max(original_width, original_height)<1000:
+            pen_thickness = 5
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 5)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), pen_thickness)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
