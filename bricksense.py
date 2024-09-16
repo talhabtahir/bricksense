@@ -262,23 +262,24 @@ else:
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 st.write("")  # Creates a blank line
-               # Conditionally display image comparison
-                if predicted_class == 1:
-                    image_comparison(
-                        img1=image_with_border, 
-                        img2=contours_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False
-                    )
-                else:
-                   image_comparison(
-                        img1=image_with_border, 
-                        img2=image_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False
-                    )
+               with st.sidebar.expander("Original vs Cracked Slider"):
+                        # Conditionally display image comparison
+                        if predicted_class == 1:
+                            image_comparison(
+                                img1=image_with_border, 
+                                img2=contours_with_border,
+                                label1="Uploaded Image",
+                                label2="Cracks Localization",
+                                show_labels=False
+                            )
+                        else:
+                           image_comparison(
+                                img1=image_with_border, 
+                                img2=image_with_border,
+                                label1="Uploaded Image",
+                                label2="Cracks Localization",
+                                show_labels=False
+                            )
                 
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
