@@ -271,7 +271,7 @@ else:
                                 label1="Uploaded Image",
                                 label2="Cracks Localization",
                                 show_labels=False,
-                                width=800
+                                width=650
                             )
                         else:
                            image_comparison(
@@ -280,7 +280,7 @@ else:
                                 label1="Uploaded Image",
                                 label2="Cracks Localization",
                                 show_labels=False,
-                                width=800
+                                width=650
                             )
                 # with st.expander("Original vs Cracked Slider"):
                 #     # Define a maximum width for the images based on a rough estimate or browser inspection
