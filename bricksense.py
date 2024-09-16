@@ -200,10 +200,10 @@ def import_and_predict(image_data, model):
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
 
         # Convert to a PIL Image for display in Streamlit
-        contours_pil = Image.fromarray(contours_img_rgb)
+        contours_pil2 = Image.fromarray(contours_img_rgb)
 
         # --- Apply Brightness or Contrast Enhancement ---
-        enhancer = ImageEnhance.Brightness(contours_pil)
+        enhancer = ImageEnhance.Brightness(contours_pil2)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
                 # Add white borders
@@ -262,6 +262,21 @@ else:
                         <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
                     </div>
                 """, unsafe_allow_html=True)
+
+                # Display the uploaded image and the contours side by side
+                col1, col2 = st.columns(2)
+    
+                with col1:
+                    st.image(image, caption="Uploaded Image", use_column_width=True)
+                with col2:
+                    if predicted_class == 1:
+                        st.image(contours_pil2, caption="Cracks Localization", use_column_width=True)
+                    else:
+                        st.image(image, caption="Uploaded Image", use_column_width=True)
+
+
+
+                
                 image_with_border = add_canvas(image_with_border)
                 contours_with_border = add_canvas(contours_with_border)               
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
