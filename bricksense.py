@@ -96,18 +96,22 @@ def correct_orientation(image):
         pass
     return image
 # Adding Canvas Background
-def add_canvas(image, canvas_size=(1040, 760), fill_color=(255, 255, 255)):
-    """Place the image on a canvas of specified size with white background."""
-    # Create a new image with the specified canvas size
-    canvas = Image.new("RGB", canvas_size, fill_color)
+def add_canvas(image, padding=20, fill_color=(255, 255, 255)):
+    """Automatically adjusts canvas size according to image size, with added padding."""
+    # Get the original image size
+    image_width, image_height = image.size
     
-    # Calculate position to paste the image at the center of the canvas
-    paste_position = (
-        (canvas_size[0] - image.size[0]) // 2, 
-        (canvas_size[1] - image.size[1]) // 2
-    )
+    # Calculate new canvas size with padding
+    canvas_width = image_width + 2 * padding
+    canvas_height = image_height + 2 * padding
     
-    # Paste the image onto the canvas
+    # Create a new image (canvas) with the calculated size
+    canvas = Image.new("RGB", (canvas_width, canvas_height), fill_color)
+    
+    # Calculate the position to paste the image at the center of the canvas
+    paste_position = (padding, padding)
+    
+    # Paste the original image onto the canvas
     canvas.paste(image, paste_position)
     
     return canvas
