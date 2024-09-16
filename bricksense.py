@@ -67,11 +67,13 @@ def import_and_predict(image_data, model, layer_index=10):
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map /= np.max(heat_map)  # Normalize to 0-1
 
-        # Resize heatmap to the size of the resized image (224, 224)
-        heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
+        # Resize heatmap to the original image size to match Code 1
+        heatmap_resized = cv2.resize(heat_map, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
 
-        # Threshold the heatmap to get regions of interest
-        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
+        # Threshold the heatmap to get regions of interest (similar to Code 1)
+        threshold = 0.5  # Same threshold used in Code 1
+        heat_map_thresh = np.uint8(255 * heatmap_resized)  # Convert heatmap to 8-bit image
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
 
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
@@ -83,25 +85,9 @@ def import_and_predict(image_data, model, layer_index=10):
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image, but scale contours to the original size
+        # Draw contours on the original image (use same settings as in Code 1)
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-
-        # Scale contours back to original image size
-        scale_x = original_width / size[0]
-        scale_y = original_height / size[1]
-        
-        # Adjust the scaling more precisely based on aspect ratio consistency
-        def scale_contours(contours, scale_x, scale_y):
-            scaled_contours = []
-            for contour in contours:
-                scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
-                scaled_contours.append(scaled_contour)
-            return scaled_contours
-
-        scaled_contours = scale_contours(contours, scale_x, scale_y)
-
-        # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 2)  # Blue contours
+        cv2.drawContours(original_img_bgr, contours, -1, (0, 255, 0), 2)  # Green contours (BGR)
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
