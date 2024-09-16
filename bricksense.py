@@ -234,7 +234,7 @@ else:
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
-
+                st.write("")  # Creates a blank line
                # Conditionally display image comparison
                 if predicted_class == 1:
                     image_comparison(
