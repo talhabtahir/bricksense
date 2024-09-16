@@ -194,7 +194,7 @@ def import_and_predict(image_data, model):
         scaled_contours = scale_contours(contours, scale_x, scale_y)
 
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 12)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), contour_thickness)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
@@ -247,7 +247,7 @@ else:
                 if predicted_class == 0:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
-                    st.error(f"❌ This wall is a cracked brick wall.")
+                    st.error(f"❌ This wall is a cracked brick wall. ")
                 elif predicted_class == 2:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
