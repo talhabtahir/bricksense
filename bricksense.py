@@ -237,8 +237,8 @@ else:
                     return image.resize(size, Image.LANCZOS)
                 
                 # Resize images to 224x224
-                image_with_border = resize_image(image_with_border, (224, 224))
-                contours_with_border = resize_image(contours_with_border, (224, 224))
+                image_with_border = resize_image(image_with_border, (800, 800))
+                contours_with_border = resize_image(contours_with_border, (800, 800))
                 
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
