@@ -270,7 +270,33 @@ else:
                 st.write("")  # Creates a blank line
                 # with st.expander("Original vs Cracked Slider"):
                         # Conditionally display image comparison
+                # if predicted_class == 1:
+                #     image_comparison(
+                #         img1=image_with_border, 
+                #         img2=contours_with_border,
+                #         label1="Uploaded Image",
+                #         label2="Cracks Localization",
+                #         show_labels=False,
+                #         width=670
+                #     )
+                # else:
+                #    image_comparison(
+                #         img1=image_with_border, 
+                #         img2=image_with_border,
+                #         label1="Uploaded Image",
+                #         label2="Cracks Localization",
+                #         show_labels=False,
+                #         width=670
+                #     )
+
+                # Conditionally display image comparison
                 if predicted_class == 1:
+                    st.markdown(
+                        """
+                        <div style='display: flex; justify-content: center; align-items: center;'>
+                        """, 
+                        unsafe_allow_html=True
+                    )
                     image_comparison(
                         img1=image_with_border, 
                         img2=contours_with_border,
@@ -279,8 +305,15 @@ else:
                         show_labels=False,
                         width=670
                     )
+                    st.markdown("</div>", unsafe_allow_html=True)
                 else:
-                   image_comparison(
+                    st.markdown(
+                        """
+                        <div style='display: flex; justify-content: center; align-items: center;'>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    image_comparison(
                         img1=image_with_border, 
                         img2=image_with_border,
                         label1="Uploaded Image",
@@ -288,6 +321,8 @@ else:
                         show_labels=False,
                         width=670
                     )
+                    st.markdown("</div>", unsafe_allow_html=True)
+
                 # with st.expander("Original vs Cracked Slider"):
                 #     # Define a maximum width for the images based on a rough estimate or browser inspection
                 #     max_width = 600  # Adjust this based on what you see in browser inspection
