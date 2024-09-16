@@ -100,7 +100,7 @@ def correct_orientation(image):
 
 def add_white_border(image, border_size):
     """Add a white border to the image."""
-    return ImageOps.expand(image, border_size, fill=(255, 255, 255))
+    return ImageOps.expand(image, border=border_size, fill=(255, 255, 255))
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
@@ -182,7 +182,7 @@ def import_and_predict(image_data, model):
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
                 # Add white borders
-        border_size = 15  # Set the border size
+        border_size = 20  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(contours_pil, border_size)
 
