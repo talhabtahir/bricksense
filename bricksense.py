@@ -88,6 +88,9 @@ def import_and_predict(image_data, model):
         # Draw contours on the resized image
         cv2.drawContours(original_resized, contours, -1, (0, 255, 0), 2)  # Green contours
 
+        # Convert the original resized image from BGR to RGB for proper color display
+        contours_img_rgb = cv2.cvtColor(original_resized, cv2.COLOR_BGR2RGB)
+
         # Resize the image with contours back to its original size
         contours_img_original_size = cv2.resize(original_resized, original_size, interpolation=cv2.INTER_LINEAR)
 
