@@ -123,7 +123,7 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, model):
+def import_and_predict(image_data, model, sensitivity=11):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
@@ -144,7 +144,7 @@ def import_and_predict(image_data, model):
 
         # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[11].output, model.layers[-1].output))
+                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
 
         # Get the predicted class and confidence
@@ -237,7 +237,7 @@ else:
             image = correct_orientation(image)
 
             # Perform prediction
-            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model)
+            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
@@ -281,7 +281,17 @@ else:
                         st.image(image, caption="No cracks detected", use_column_width=True)
 
 
-
+                # Create an expander for sensitivity adjustment
+                with st.expander("🔍 Sensitivity Settings"):
+                    # Add a slider for selecting the sensitivity dynamically
+                    sensitivity = st.slider(
+                        "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
+                        min_value=0.1,   # Minimum value for sensitivity
+                        max_value=2.0,   # Maximum value for sensitivity
+                        value=1.0,       # Default value for sensitivity
+                        step=0.1,        # Step for incremental changes
+                        format="%.1f"    # Format to display sensitivity with one decimal
+    )
                 
                 image_with_border = add_canvas(image_with_border)
                 contours_with_border = add_canvas(contours_with_border)               
