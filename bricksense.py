@@ -103,6 +103,7 @@ def import_and_predict(image_data, model, layer_index=10):
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None
 
+
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
     # Visualize the heatmap
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
