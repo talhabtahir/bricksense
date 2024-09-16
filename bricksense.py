@@ -207,7 +207,7 @@ def import_and_predict(image_data, model):
         target_size = (800, 800)  # Example target size
         
         # Resize and pad images
-        image_with_border = resize_and_pad_image(original_img_bgr, target_size)
+        image_with_border = resize_and_pad_image(image_data, target_size)
         contours_with_border = resize_and_pad_image(contours_pil, target_size)
 
         return pred_vec, image_with_border, contours_with_border        
