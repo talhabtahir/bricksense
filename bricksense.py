@@ -187,22 +187,8 @@ def import_and_predict(image_data, model):
 
         scaled_contours = scale_contours(contours, scale_x, scale_y)
 
-        # Pen thickess for contours
-        pen_thickness = 2
-        if max(original_width, original_height)<300:
-            pen_thickness = 2
-            st.write('p2')
-        elif max(original_width, original_height)<500:
-            pen_thickness = 3
-            st.write('p3')
-        elif max(original_width, original_height)<800:
-            pen_thickness = 4
-            st.write('p4')
-        elif max(original_width, original_height)<1000:
-            pen_thickness = 40
-            st.write('p40')
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), pen_thickness)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 12)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
