@@ -111,8 +111,8 @@ def add_canvas(image, padding=30, fill_color=(255, 255, 255)):
     
     # Calculate the position to paste the image at the center of the canvas
     paste_position = (
-        padding + (canvas_width - image_width) // 2,
-        padding + (canvas_height - image_height) // 2
+        (canvas_width - image_width) // 2,
+        (canvas_height - image_height) // 2
     )
     
     # Paste the original image onto the canvas
