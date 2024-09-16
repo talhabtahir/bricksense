@@ -89,14 +89,19 @@ def import_and_predict(image_data, model, layer_index=10):
         # Scale contours back to original image size
         scale_x = original_width / size[0]
         scale_y = original_height / size[1]
+        
+        # Adjust the scaling more precisely based on aspect ratio consistency
+        def scale_contours(contours, scale_x, scale_y):
+            scaled_contours = []
+            for contour in contours:
+                scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
+                scaled_contours.append(scaled_contour)
+            return scaled_contours
 
-        scaled_contours = []
-        for contour in contours:
-            scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
-            scaled_contours.append(scaled_contour)
+        scaled_contours = scale_contours(contours, scale_x, scale_y)
 
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (0, 255, 0), 2)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 2)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
@@ -152,7 +157,7 @@ else:
 
                 with col2:
                     if predicted_class == 1:
-                        st.image(contours_pil, caption="Crack Localization", use_column_width=True)
+                        st.image(contours_pil, caption="Cracks Localization", use_column_width=True)
                     else:
                         st.warning(f"Contours are not applicable. This is not a cracked wall.")
                 
