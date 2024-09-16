@@ -215,9 +215,7 @@ else:
                 # Display predictions in one line
                 st.markdown(f"""
                              
-                - 🟢 **Normal Wall:** {prediction_percentages[0]:.2f}%
-                - 🔴 **Cracked Wall:** {prediction_percentages[1]:.2f}%
-                - 🟠 **Not a Wall:** {prediction_percentages[2]:.2f}%
+                🟢 **Normal Wall:** {prediction_percentages[0]:.2f}% 🔴 **Cracked Wall:** {prediction_percentages[1]:.2f}% 🟠 **Not a Wall:** {prediction_percentages[2]:.2f}%
                 """)
                                 
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
