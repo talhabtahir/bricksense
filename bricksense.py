@@ -210,11 +210,7 @@ else:
             with col1:
                 st.image(image, caption="Uploaded Image", use_column_width=True)
 
-            # Perform crack localization (do not overwrite the image variable)
-            crack_pos = crack_position(file)  # crack_position should be called with image
-            st.image(crack_pos, caption="Crack Location in the image", use_column_width=True)
-
-            # Add a slider for selecting the layer index dynamically
+                       # Add a slider for selecting the layer index dynamically
             layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
             
              # Perform prediction
