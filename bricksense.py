@@ -214,9 +214,12 @@ else:
                 st.write(f"**Prediction Percentages:**")
                 # Display predictions in one line
                 st.markdown(f"""
-                             
-                🟢 **Normal Wall:** {prediction_percentages[0]:.2f}% 🔴 **Cracked Wall:** {prediction_percentages[1]:.2f}% 🟠 **Not a Wall:** {prediction_percentages[2]:.2f}%
-                """)
+                    <div style="display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: #333;">
+                        <div style="text-align: center; flex: 1;">🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%</div>
+                        <div style="text-align: center; flex: 1;">🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%</div>
+                        <div style="text-align: center; flex: 1;">🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%</div>
+                    </div>
+                """, unsafe_allow_html=True)
                                 
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
