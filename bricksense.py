@@ -303,7 +303,7 @@ else:
                         label1="Uploaded Image",
                         label2="Cracks Localization",
                         show_labels=False,
-                        width=670
+                        # width=670
                     )
                     st.markdown("</div>", unsafe_allow_html=True)
                 else:
@@ -319,7 +319,7 @@ else:
                         label1="Uploaded Image",
                         label2="Cracks Localization",
                         show_labels=False,
-                        width=670
+                        # width=670
                     )
                     st.markdown("</div>", unsafe_allow_html=True)
 
