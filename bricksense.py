@@ -95,6 +95,27 @@ def correct_orientation(image):
     except (AttributeError, KeyError, IndexError):
         pass
     return image
+def resize_image(image, target_size):
+    """Resize the image to the target size, keeping the same aspect ratio."""
+    return image.resize(target_size, Image.LANCZOS)
+
+def resize_with_padding(image, target_size):
+    """Resize image to target size with padding to maintain aspect ratio."""
+    img_aspect = image.width / image.height
+    target_aspect = target_size[0] / target_size[1]
+
+    if img_aspect > target_aspect:
+        new_width = int(target_size[1] * img_aspect)
+        new_size = (new_width, target_size[1])
+    else:
+        new_height = int(target_size[0] / img_aspect)
+        new_size = (target_size[0], new_height)
+
+    resized_image = image.resize(new_size, Image.LANCZOS)
+    padded_image = Image.new("RGB", target_size, (255, 255, 255))
+    offset = ((target_size[0] - new_size[0]) // 2, (target_size[1] - new_size[1]) // 2)
+    padded_image.paste(resized_image, offset)
+    return padded_image
 
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model):
@@ -174,10 +195,15 @@ def import_and_predict(image_data, model):
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-                # Add white borders
+        # Add white borders
         border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(contours_pil, border_size)
+
+        # Apply resizing with padding or without padding as needed
+        target_size = (224, 224)  # Define your target size
+        image_with_border = resize_with_padding(image_with_border, target_size)
+        contours_with_border = resize_with_padding(contours_with_border, target_size)
 
         return pred_vec, image_with_border, contours_with_border        
     except Exception as e:
