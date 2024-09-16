@@ -207,8 +207,6 @@ else:
                     img2=contours_pil,
                     label1="Uploaded Image",
                     label2="Cracks Localization",
-                    label1='Uploaded Image',
-                    label2='Crack Localization',
                     show_labels = True
                 )
 
