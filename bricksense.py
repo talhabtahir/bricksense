@@ -299,7 +299,7 @@ else:
                                 label2="Cracks Localization",
                                 show_labels=False,
                                 # width=670,
-                                make_responsive=True,
+                                # make_responsive=True,
                                 # in_memory=True
                             )
                         else:
@@ -310,7 +310,7 @@ else:
                                 label2="Cracks Localization",
                                 show_labels=False,
                                 # width=670,
-                                make_responsive=True,
+                                # make_responsive=True,
                                 # in_memory=True
                             )
 
