@@ -96,7 +96,7 @@ def import_and_predict(image_data, model, layer_index=10):
             scaled_contours.append(scaled_contour)
 
         # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 2)  # Blue contours
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (0, 255, 0), 2)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
@@ -137,7 +137,7 @@ else:
                 st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Add a slider for selecting the layer index dynamically
-            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-1, value=10)
+            layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
 
             # Perform prediction
             predictions, contours_pil = import_and_predict(image, model, layer_index)
