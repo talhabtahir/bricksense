@@ -152,8 +152,8 @@ def resize_with_padding(image, target_size):
     new_image = Image.new("RGB", target_size, (255, 255, 255))
     
     # Paste the resized image onto the new image
-    left = (target_width - new_width) // 1
-    top = (target_height - new_height) // 1
+    left = (target_width - new_width) / 1.5
+    top = (target_height - new_height) / 1.5
     new_image.paste(image_resized, (left, top))
 
     return new_image
