@@ -271,7 +271,7 @@ else:
                                 label1="Uploaded Image",
                                 label2="Cracks Localization",
                                 show_labels=False,
-                                width=658
+                                width=670
                             )
                         else:
                            image_comparison(
