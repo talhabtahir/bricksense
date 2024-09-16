@@ -101,6 +101,9 @@ def correct_orientation(image):
 def add_white_border(image, border_size):
     """Add a white border to the image."""
     return ImageOps.expand(image, border=border_size, fill=(255, 255, 255))
+def add_padding(image, padding):
+    new_size = (image.width + padding * 2, image.height + padding * 2)
+    return ImageOps.expand(image, padding, (255, 255, 255))
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
@@ -183,8 +186,8 @@ def import_and_predict(image_data, model):
 
                 # Add white borders
         border_size = 20  # Set the border size
-        image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contours_pil, border_size)
+        image_with_border = add_padding(image_data, border_size)
+        contours_with_border = add_padding(contours_pil, border_size)
 
         return pred_vec, image_with_border, contours_with_border        
     except Exception as e:
@@ -233,15 +236,9 @@ else:
                     </div>
                 """, unsafe_allow_html=True)
 
-                def add_padding(image, padding):
-                    new_size = (image.width + padding * 2, image.height + padding * 2)
-                    return ImageOps.expand(image, padding, (255, 255, 255))
                 
-                # Add padding to images
-                padding = 50
-                image_with_border = add_padding(image_with_border, padding)
-                contours_with_border = add_padding(contours_with_border, padding)
                 
+                                
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
