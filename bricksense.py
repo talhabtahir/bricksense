@@ -141,7 +141,7 @@ else:
             st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Add a slider for selecting the layer index dynamically
-            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-3, value=12)
+            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-4, value=12)
 
             # Perform prediction
             predictions, contours_fig = import_and_predict(image, model, layer_index)
