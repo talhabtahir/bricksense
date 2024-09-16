@@ -97,14 +97,14 @@ def correct_orientation(image):
     return image
     
 # Adding Canvas Background
-def add_canvas(image, padding=30, fill_color=(255, 255, 255)):
+def add_canvas(image, fill_color=(255, 255, 255)):
     """Automatically adjusts canvas size according to image size, with added padding and centers the image on the canvas."""
     # Get the original image size
     image_width, image_height = image.size
     
     # Calculate new canvas size with padding
-    canvas_width = image_width + ((2 * padding)//3)
-    canvas_height = image_height + 2 * padding
+    canvas_width = image_width + 50
+    canvas_height = image_height + 100
     
     # Create a new image (canvas) with the calculated size
     canvas = Image.new("RGB", (canvas_width, canvas_height), fill_color)
