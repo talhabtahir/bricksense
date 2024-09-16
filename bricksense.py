@@ -5,6 +5,7 @@ import tensorflow as tf
 import cv2
 from keras.models import Model
 import matplotlib.pyplot as plt
+import io
 
 @st.cache_resource
 def load_model():
@@ -94,11 +95,8 @@ def import_and_predict(image_data, model, layer_index=10):
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
 
-        # Convert to a PIL Image for display in Streamlit
-        contours_pil = Image.fromarray(contours_img_rgb)
-
         # Return results for display
-        return pred_vec, contours_pil, heat_map, contours_img_rgb
+        return pred_vec, contours_img_rgb, heat_map, heatmap_resized
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None
@@ -106,7 +104,7 @@ def import_and_predict(image_data, model, layer_index=10):
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
     
-    # Plot the heatmap
+    # Plot the heatmap with color map
     ax[0].imshow(heat_map, cmap='jet')
     ax[0].set_title('Heatmap')
     ax[0].axis('off')
@@ -117,7 +115,6 @@ def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
     ax[1].axis('off')
     
     # Save the figure to a BytesIO object and return it
-    import io
     buf = io.BytesIO()
     plt.savefig(buf, format='png')
     buf.seek(0)
@@ -155,7 +152,7 @@ else:
             layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
 
             # Perform prediction
-            predictions, contours_pil, heat_map, contours_img_rgb = import_and_predict(image, model, layer_index)
+            predictions, contours_pil, heat_map, heatmap_resized = import_and_predict(image, model, layer_index)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -182,7 +179,7 @@ else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
 
                 # Visualize the heatmap and contours
-                buf = visualize_heatmap_and_contours(heat_map, contours_img_rgb)
+                buf = visualize_heatmap_and_contours(heatmap_resized, contours_pil)
                 st.image(buf, caption="Heatmap and Contours")
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
