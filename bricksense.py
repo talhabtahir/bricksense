@@ -207,7 +207,7 @@ else:
             # Display the uploaded image and the contours side by side
             col1, col2 = st.columns(2)
             
-             with col1:
+            with col1:
                 st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Perform crack localization (do not overwrite the image variable)
