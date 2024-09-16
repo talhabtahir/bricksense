@@ -103,21 +103,26 @@ def import_and_predict(image_data, model, layer_index=10):
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None, None
 
-
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
-    # Visualize the heatmap
     fig, ax = plt.subplots(1, 2, figsize=(12, 6))
     
+    # Plot the heatmap
     ax[0].imshow(heat_map, cmap='jet')
     ax[0].set_title('Heatmap')
     ax[0].axis('off')
     
-    # Visualize contours
+    # Plot contours
     ax[1].imshow(contours_img_rgb)
     ax[1].set_title('Contours')
     ax[1].axis('off')
     
-    plt.show()
+    # Save the figure to a BytesIO object and return it
+    import io
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png')
+    buf.seek(0)
+    plt.close(fig)
+    return buf
 
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
@@ -177,6 +182,7 @@ else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
 
                 # Visualize the heatmap and contours
-                visualize_heatmap_and_contours(heat_map, contours_img_rgb)
+                buf = visualize_heatmap_and_contours(heat_map, contours_img_rgb)
+                st.image(buf, caption="Heatmap and Contours")
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
