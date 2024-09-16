@@ -103,28 +103,20 @@ def import_and_predict(image_data, model, layer_index=10):
         st.error(f"An error occurred during prediction: {e}")
         return None, None, None
 
-def visualize_heatmap_and_contours(heat_map, contours_img_rgb, original_img):
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+def visualize_heatmap_and_contours(heat_map, contours_img_rgb):
+    # Display the heatmap as an image
+    fig, ax = plt.subplots(1, 2, figsize=(15, 7))
 
-    # Heatmap (224x224)
+    # Heatmap (original size)
     ax[0].imshow(heat_map, cmap='jet')
-    ax[0].set_title('Heatmap (224x224)')
+    ax[0].set_title('Heatmap')
     ax[0].axis('off')
-
-    # Contours on Heatmap (224x224)
-    heatmap_with_contours = np.copy(heat_map)
-    heatmap_with_contours = np.uint8(255 * heatmap_with_contours)
-    heatmap_with_contours_colored = cv2.applyColorMap(heatmap_with_contours, cv2.COLORMAP_JET)
-    contours_overlay = cv2.drawContours(heatmap_with_contours_colored, contours, -1, (0, 255, 0), 2)
-    ax[1].imshow(contours_overlay)
-    ax[1].set_title('Contours on Heatmap (224x224)')
-    ax[1].axis('off')
 
     # Contours on Original Image
     contours_pil = Image.fromarray(contours_img_rgb)
-    ax[2].imshow(contours_pil)
-    ax[2].set_title('Contours on Original Image')
-    ax[2].axis('off')
+    ax[1].imshow(contours_pil)
+    ax[1].set_title('Contours on Original Image')
+    ax[1].axis('off')
 
     plt.tight_layout()
     st.pyplot(fig)
@@ -187,6 +179,6 @@ else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
 
                 # Visualize the heatmap and contours
-                visualize_heatmap_and_contours(heat_map, contours_pil, image)
+                visualize_heatmap_and_contours(heat_map, contours_img_rgb)
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
