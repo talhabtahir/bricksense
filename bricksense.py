@@ -280,7 +280,9 @@ else:
                         step=1,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
-                
+                # Perform prediction again
+                predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
+
                 # Display the uploaded image and the contours side by side
                 col1, col2 = st.columns(2)
     
@@ -289,8 +291,11 @@ else:
                 with col2:
                     if predicted_class == 1:
                         st.image(contours_pil2, caption="Cracks Localization", use_column_width=True)
-                    else:
+                    elif predicted_class == 0:
                         st.image(image, caption="No cracks detected", use_column_width=True)
+                    else:
+                        st.image(image, caption="No wall detected", use_column_width=True)
+
 
 
                
