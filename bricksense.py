@@ -5,6 +5,7 @@ import numpy as np
 import cv2
 from keras.models import Model
 from streamlit_image_comparison import image_comparison
+import math
 
 # Set the page configuration with favicon
 st.set_page_config(
@@ -103,8 +104,8 @@ def add_canvas(image, fill_color=(255, 255, 255)):
     image_width, image_height = image.size
     
     # Calculate new canvas size with padding
-    canvas_width = image_width + (int(roundup(0.05*image_width)))
-    canvas_height = image_height + (int(roundup(0.1*image_height)))
+    canvas_width = image_width + math.ceil(0.05 * image_width)
+    canvas_height = image_height + math.ceil(0.1 * image_height)
     
     # Create a new image (canvas) with the calculated size
     canvas = Image.new("RGB", (canvas_width, canvas_height), fill_color)
