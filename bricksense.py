@@ -3,6 +3,7 @@ import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags
 import numpy as np
 import matplotlib.pyplot as plt
+from keras.models import Model
 import cv2
 
 # Set the page configuration with favicon
