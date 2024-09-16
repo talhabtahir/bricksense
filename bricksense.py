@@ -174,10 +174,21 @@ def import_and_predict(image_data, model):
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-        return pred_vec, contours_pil
+                # Add white borders
+        border_size = 20  # Set the border size
+        image_with_border = add_white_border(image_data, border_size)
+        contours_with_border = add_white_border(contours_pil, border_size)
+
+        return pred_vec, image_with_border, contours_with_border        
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+        
+# Adds border to the image
+
+def add_white_border(image, border_size):
+    """Add a white border to the image."""
+    return ImageOps.expand(image, border_size, (255, 255, 255))
 
 # Check if a file was uploaded
 if file is None:
@@ -194,7 +205,7 @@ else:
             image = correct_orientation(image)
 
             # Perform prediction
-            predictions, contours_pil = import_and_predict(image, model)
+            predictions, image_with_border, contours_with_border = import_and_predict(image, model)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
@@ -207,8 +218,8 @@ else:
 
                 # Display the image comparison
                 image_comparison(
-                    img1=image, 
-                    img2=contours_pil,
+                    img1=image_with_border, 
+                    img2=contours_with_border,
                     label1="Uploaded Image",
                     label2="Cracks Localization",
                     show_labels = True
