@@ -244,8 +244,7 @@ else:
                         img2=contours_with_border,
                         label1="Uploaded Image",
                         label2="Cracks Localization",
-                        show_labels=True,
-                        width=500
+                        show_labels=True
                     )
                 else:
                    image_comparison(
@@ -253,8 +252,8 @@ else:
                         img2=image_with_border,
                         label1="Uploaded Image",
                         label2="Cracks Localization",
-                        show_labels=True,
-                        width=500
+                        show_labels=True
+                        
                         )
                 st.image(image_with_border, caption="Image with Border", use_column_width=True)
                 st.image(contours_with_border, caption="Image with Border", use_column_width=False)
