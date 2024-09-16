@@ -289,7 +289,7 @@ else:
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 st.write("")  # Creates a blank line
-                if st.button("Original vs Cracked Slider"):
+                if st.checkbox("Original vs Cracked Slider"):
                         # Conditionally display image comparison
                         if predicted_class == 1:
                             image_comparison(
