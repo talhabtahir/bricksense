@@ -103,7 +103,7 @@ from PIL import Image
 
 def resize_with_padding(image, target_size):
     """
-    Resize an image to the target size with padding if necessary to maintain aspect ratio.
+    Resize an image to the target size with padding using a transparent background.
 
     Parameters:
     - image (PIL.Image.Image): The input image to be resized.
@@ -112,6 +112,10 @@ def resize_with_padding(image, target_size):
     Returns:
     - PIL.Image.Image: The resized image with padding.
     """
+    # Ensure the image is in RGBA mode for transparency
+    if image.mode != 'RGBA':
+        image = image.convert('RGBA')
+
     # Get the original image size
     original_width, original_height = image.size
 
@@ -132,15 +136,16 @@ def resize_with_padding(image, target_size):
     # Resize the image with the new dimensions
     image_resized = image.resize((new_width, new_height), Image.LANCZOS)
 
-    # Create a new image with the target size and white background
-    new_image = Image.new("RGB", target_size, (255, 255, 255))
+    # Create a new image with the target size and transparent background
+    new_image = Image.new("RGBA", target_size, (0, 0, 0, 0))
     
     # Paste the resized image onto the new image
     left = (target_width - new_width) // 2
     top = (target_height - new_height) // 2
-    new_image.paste(image_resized, (left, top))
+    new_image.paste(image_resized, (left, top), image_resized)  # Use image_resized as mask
 
     return new_image
+
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
