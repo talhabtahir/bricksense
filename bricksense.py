@@ -293,43 +293,43 @@ else:
                                 in_memory=True
                             )
 
-                # Conditionally display image comparison
-                if predicted_class == 1:
-                    st.markdown(
-                        """
-                        <div style='display: flex; justify-content: center; align-items: center;'>
-                        """, 
-                        unsafe_allow_html=True
-                    )
-                    image_comparison(
-                        img1=image_with_border, 
-                        img2=contours_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False,
-                        # width=670,
-                        make_responsive=True,
-                        in_memory=True
-                    )
-                    st.markdown("</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown(
-                        """
-                        <div style='display: flex; justify-content: center; align-items: center;'>
-                        """, 
-                        unsafe_allow_html=True
-                    )
-                    image_comparison(
-                        img1=image_with_border, 
-                        img2=image_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False,
-                        # width=670,
-                        make_responsive=True,
-                        in_memory=True
-                    )
-                    st.markdown("</div>", unsafe_allow_html=True)
+                # # Conditionally display image comparison
+                # if predicted_class == 1:
+                #     st.markdown(
+                #         """
+                #         <div style='display: flex; justify-content: center; align-items: center;'>
+                #         """, 
+                #         unsafe_allow_html=True
+                #     )
+                #     image_comparison(
+                #         img1=image_with_border, 
+                #         img2=contours_with_border,
+                #         label1="Uploaded Image",
+                #         label2="Cracks Localization",
+                #         show_labels=False,
+                #         # width=670,
+                #         make_responsive=True,
+                #         in_memory=True
+                #     )
+                #     st.markdown("</div>", unsafe_allow_html=True)
+                # else:
+                #     st.markdown(
+                #         """
+                #         <div style='display: flex; justify-content: center; align-items: center;'>
+                #         """, 
+                #         unsafe_allow_html=True
+                #     )
+                #     image_comparison(
+                #         img1=image_with_border, 
+                #         img2=image_with_border,
+                #         label1="Uploaded Image",
+                #         label2="Cracks Localization",
+                #         show_labels=False,
+                #         # width=670,
+                #         make_responsive=True,
+                #         in_memory=True
+                #     )
+                #     st.markdown("</div>", unsafe_allow_html=True)
 
                 # with st.expander("Original vs Cracked Slider"):
                 #     # Define a maximum width for the images based on a rough estimate or browser inspection
