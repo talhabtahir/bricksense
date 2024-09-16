@@ -58,38 +58,38 @@ def import_and_predict(image_data, model, layer_index=10):
         pred = np.argmax(pred_vec)
 
         # Extract the feature map output
-        layer_output = np.squeeze(layer_output)  # Shape varies based on the layer
+        layer_output = np.squeeze(layer_output)
 
         # Average across the depth dimension to generate the heatmap
-        heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
+        heat_map = np.mean(layer_output, axis=-1)
 
-        # Apply ReLU to eliminate negative values (to mimic behavior of Code 1)
+        # Apply ReLU to eliminate negative values
         heat_map = np.maximum(heat_map, 0)
 
         # Normalize heatmap between 0 and 1
         heat_map /= np.max(heat_map)
 
-        # Resize heatmap to the original image size (to match Code 1)
+        # Resize heatmap back to the original image size
         heatmap_resized = cv2.resize(heat_map, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
 
-        # Threshold the heatmap to get regions of interest
-        threshold_value = 0.5  # Same threshold used in Code 1
-        heat_map_thresh = np.uint8(255 * heatmap_resized)  # Convert heatmap to 8-bit image
+        # Threshold the heatmap
+        threshold_value = 0.5
+        heat_map_thresh = np.uint8(255 * heatmap_resized)
         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold_value), 255, cv2.THRESH_BINARY)
 
-        # Find contours in the thresholded heatmap (exactly as in Code 1)
+        # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Convert original image to numpy array (for contour drawing)
+        # Convert original image to numpy array for contour drawing
         original_img_np = np.array(image_data)
 
-        # Ensure the original image is in 3 channels (RGB) for contour drawing
+        # Ensure the original image is in RGB
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image using the same color and thickness as Code 1
+        # Draw contours on the original image
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-        cv2.drawContours(original_img_bgr, contours, -1, (255, 0, 0), 2)  # Green contours (BGR)
+        cv2.drawContours(original_img_bgr, contours, -1, (0, 255, 0), 2)  # Green contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
@@ -97,10 +97,37 @@ def import_and_predict(image_data, model, layer_index=10):
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
 
-        return pred_vec, contours_pil
+        # Return results for display
+        return pred_vec, contours_pil, heat_map
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
-        return None, None
+        return None, None, None
+
+def visualize_heatmap_and_contours(heat_map, contours_img_rgb, original_img):
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+
+    # Original Heatmap (224x224)
+    ax[0].imshow(heat_map, cmap='jet')
+    ax[0].set_title('Heatmap (224x224)')
+    ax[0].axis('off')
+
+    # Contours on Heatmap (224x224)
+    heatmap_with_contours = np.copy(heat_map)
+    heatmap_with_contours = np.uint8(255 * heatmap_with_contours)
+    heatmap_with_contours_colored = cv2.applyColorMap(heatmap_with_contours, cv2.COLORMAP_JET)
+    contours_overlay = cv2.drawContours(heatmap_with_contours_colored, contours, -1, (0, 255, 0), 2)
+    ax[1].imshow(contours_overlay)
+    ax[1].set_title('Contours on Heatmap (224x224)')
+    ax[1].axis('off')
+
+    # Contours on Original Image
+    contours_pil = Image.fromarray(contours_img_rgb)
+    ax[2].imshow(contours_pil)
+    ax[2].set_title('Contours on Original Image')
+    ax[2].axis('off')
+
+    plt.tight_layout()
+    st.pyplot(fig)
 
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
@@ -133,7 +160,7 @@ else:
             layer_index = st.slider("Select layer index for feature extraction", min_value=6, max_value=len(model.layers)-4, value=10)
 
             # Perform prediction
-            predictions, contours_pil = import_and_predict(image, model, layer_index)
+            predictions, contours_pil, heat_map = import_and_predict(image, model, layer_index)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -158,5 +185,8 @@ else:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
                     st.error(f"❓ Unknown prediction result: {predicted_class}")
+
+                # Visualize the heatmap and contours
+                visualize_heatmap_and_contours(heat_map, contours_pil, image)
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
