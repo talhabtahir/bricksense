@@ -1,6 +1,6 @@
 import streamlit as st
 import tensorflow as tf
-from PIL import Image, ImageOps, ExifTags
+from PIL import Image, ImageOps, ExifTags, ImageEnhance
 import numpy as np
 import cv2
 from keras.models import Model
@@ -170,10 +170,15 @@ def import_and_predict(image_data, model):
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
 
+        # --- Apply Brightness or Contrast Enhancement ---
+        enhancer = ImageEnhance.Brightness(contours_pil)
+        contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
+
         return pred_vec, contours_pil
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 # Check if a file was uploaded
 if file is None:
