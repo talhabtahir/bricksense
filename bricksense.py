@@ -152,7 +152,7 @@ else:
 
                 with col2:
                     if predicted_class == 1:
-                        st.image(contours_pil, caption="Contours on Image", use_column_width=True)
+                        st.image(contours_pil, caption="Crack Localization", use_column_width=True)
                     else:
                         st.warning(f"Contours are not applicable. This is not a cracked wall.")
                 
