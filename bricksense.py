@@ -41,11 +41,10 @@ def import_and_predict(image_data, model, layer_index=10):
         # Get original image size
         original_size = image_data.size  # (width, height)
         original_width, original_height = original_size
-        size = (224, 224)  # Model input size
 
-        # Resize the image for model prediction
+        # Resize the image for model prediction (Model input size is 224x224)
         image_resized = image_data.convert("RGB")
-        image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
+        image_resized = ImageOps.fit(image_resized, (224, 224), Image.LANCZOS)
         img = np.asarray(image_resized).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
 
@@ -58,17 +57,17 @@ def import_and_predict(image_data, model, layer_index=10):
         pred = np.argmax(pred_vec)
 
         # Extract the feature map output
-        layer_output = np.squeeze(layer_output)  # Shape varies based on the layer
+        layer_output = np.squeeze(layer_output)  # Shape depends on the layer
 
         # Average across the depth dimension to generate the heatmap
-        heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
+        heat_map = np.mean(layer_output, axis=-1)
 
         # Normalize the heatmap between 0 and 1 for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map /= np.max(heat_map)  # Normalize to 0-1
 
-        # Resize heatmap to the size of the resized image (224, 224)
-        heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
+        # Resize heatmap directly to the original image size
+        heatmap_resized = cv2.resize(heat_map, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
 
         # Threshold the heatmap to get regions of interest
         _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
@@ -83,25 +82,9 @@ def import_and_predict(image_data, model, layer_index=10):
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image, but scale contours to the original size
+        # Draw contours directly on the original image (in blue BGR: (255, 0, 0))
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-
-        # Scale contours back to original image size
-        scale_x = original_width / size[0]
-        scale_y = original_height / size[1]
-        
-        # Adjust the scaling more precisely based on aspect ratio consistency
-        def scale_contours(contours, scale_x, scale_y):
-            scaled_contours = []
-            for contour in contours:
-                scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
-                scaled_contours.append(scaled_contour)
-            return scaled_contours
-
-        scaled_contours = scale_contours(contours, scale_x, scale_y)
-
-        # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 2)  # Blue contours
+        cv2.drawContours(original_img_bgr, contours, -1, (255, 0, 0), 2)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
