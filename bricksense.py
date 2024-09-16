@@ -237,7 +237,7 @@ else:
             image = correct_orientation(image)
 
             # Perform prediction
-            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity)
+            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
