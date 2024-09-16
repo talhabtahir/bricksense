@@ -184,13 +184,31 @@ def import_and_predict(image_data, model):
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-                # Add white borders
-        border_size = 0  # Set the border size
-        image_with_border = add_padding(image_data, border_size)
-        contours_with_border = add_padding(contours_pil, border_size)
-
-        image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contours_pil, border_size)
+        def resize_and_pad_image(image, target_size):
+            """Resize and pad image to target size while maintaining aspect ratio."""
+            width, height = image.size
+            target_width, target_height = target_size
+            aspect_ratio = width / height
+        
+            if width > height:
+                new_width = target_width
+                new_height = int(target_width / aspect_ratio)
+            else:
+                new_height = target_height
+                new_width = int(target_height * aspect_ratio)
+        
+            resized_image = image.resize((new_width, new_height), Image.LANCZOS)
+            
+            # Add padding to ensure the image fits the target size
+            padded_image = ImageOps.pad(resized_image, target_size, padding_color=(255, 255, 255))
+            return padded_image
+        
+        # Define the target size for images
+        target_size = (800, 800)  # Example target size
+        
+        # Resize and pad images
+        image_with_border = resize_and_pad_image(image_with_border, target_size)
+        contours_with_border = resize_and_pad_image(contours_with_border, target_size)
 
         return pred_vec, image_with_border, contours_with_border        
     except Exception as e:
