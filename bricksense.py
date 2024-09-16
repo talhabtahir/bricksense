@@ -188,7 +188,7 @@ def import_and_predict(image_data, model):
 
 def add_white_border(image, border_size):
     """Add a white border to the image."""
-    return ImageOps.expand(image, border_size, (255, 255, 255))
+    return ImageOps.expand(image, border_size, fill=(255, 255, 255))
 
 # Check if a file was uploaded
 if file is None:
