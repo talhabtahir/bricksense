@@ -190,7 +190,7 @@ else:
             image = correct_orientation(image)
 
             # Perform prediction
-            predictions, contours_pil = import_and_predict(image, model, layer_index)
+            predictions, contours_pil = import_and_predict(image, model, 11)
 
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
