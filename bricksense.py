@@ -233,12 +233,14 @@ else:
                     </div>
                 """, unsafe_allow_html=True)
 
-                def resize_image(image, size):
-                    return image.resize(size, Image.LANCZOS)
+                def add_padding(image, padding):
+                    new_size = (image.width + padding * 2, image.height + padding * 2)
+                    return ImageOps.expand(image, padding, (255, 255, 255))
                 
-                # Resize images to 224x224
-                image_with_border = resize_image(image_with_border, (800, 800))
-                contours_with_border = resize_image(contours_with_border, (800, 800))
+                # Add padding to images
+                padding = 50
+                image_with_border = add_padding(image_with_border, padding)
+                contours_with_border = add_padding(contours_with_border, padding)
                 
                 # st.write(f"Normal Wall: {prediction_percentages[0]:.2f}%")
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
