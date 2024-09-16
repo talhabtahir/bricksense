@@ -278,7 +278,7 @@ else:
                     if predicted_class == 1:
                         st.image(contours_pil2, caption="Cracks Localization", use_column_width=True)
                     else:
-                        st.image(image, caption="Uploaded Image", use_column_width=True)
+                        st.image(image, caption="No cracks detected", use_column_width=True)
 
 
 
