@@ -35,12 +35,12 @@ def correct_orientation(image):
     except Exception as e:
         st.error(f"Error correcting orientation: {e}")
     return image
-
 def import_and_predict(image_data, model):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
-        size = (224, 224)
+        original_width, original_height = original_size
+        size = (224, 224)  # Model input size
 
         # Resize the image for model prediction
         image_resized = image_data.convert("RGB")
@@ -82,9 +82,20 @@ def import_and_predict(image_data, model):
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image without resizing (in blue BGR: (255, 0, 0))
+        # Draw contours on the original image, but scale contours to the original size
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-        cv2.drawContours(original_img_bgr, contours, -1, (255, 0, 0), 2)  # Blue contours
+
+        # Scale contours back to original image size
+        scale_x = original_width / size[0]
+        scale_y = original_height / size[1]
+        
+        scaled_contours = []
+        for contour in contours:
+            scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
+            scaled_contours.append(scaled_contour)
+
+        # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
+        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), 2)  # Blue contours
 
         # Convert the image back to RGB
         contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
@@ -101,6 +112,7 @@ def import_and_predict(image_data, model):
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
+
 
 
 # Main area for image upload
