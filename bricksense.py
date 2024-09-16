@@ -36,7 +36,7 @@ def correct_orientation(image):
         st.error(f"Error correcting orientation: {e}")
     return image
 
-def import_and_predict(image_data, model, layer_index=12):
+def import_and_predict(image_data, model, layer_index=10):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
@@ -50,7 +50,6 @@ def import_and_predict(image_data, model, layer_index=12):
         img_reshape = img[np.newaxis, ...]
 
         # Get predictions from the model
-        # Dynamically choose the layer based on the specified layer_index
         custom_model = Model(inputs=model.inputs, 
                              outputs=(model.layers[layer_index].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
@@ -105,16 +104,10 @@ def import_and_predict(image_data, model, layer_index=12):
         # Convert to a PIL Image for display in Streamlit
         contours_pil = Image.fromarray(contours_img_rgb)
 
-        # Create a figure to display the results
-        fig, ax = plt.subplots(figsize=(8, 8))  # Adjust figure size for better clarity
-        ax.imshow(contours_pil)
-        ax.axis('off')  # Hide the axes for a cleaner visualization
-
-        return pred_vec, fig
+        return pred_vec, contours_pil
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
-
 
 # Main area for image upload
 file = st.file_uploader("Please upload an image of the brick wall", type=["jpg", "png", "jpeg", "bmp", "tiff", "webp"])
@@ -137,14 +130,17 @@ else:
             if image.format not in ["JPEG", "PNG", "BMP", "TIFF", "WEBP"]:
                 raise ValueError("Unsupported image format. Please upload JPG, PNG, BMP, TIFF, or WEBP files.")
 
-            # Display the uploaded image
-            st.image(image, caption="Uploaded Image", use_column_width=True)
+            # Display the uploaded image and the contours side by side
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.image(image, caption="Uploaded Image", use_column_width=True)
 
             # Add a slider for selecting the layer index dynamically
-            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-4, value=12)
+            layer_index = st.slider("Select layer index for feature extraction", min_value=1, max_value=len(model.layers)-1, value=10)
 
             # Perform prediction
-            predictions, contours_fig = import_and_predict(image, model, layer_index)
+            predictions, contours_pil = import_and_predict(image, model, layer_index)
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
@@ -154,12 +150,17 @@ else:
                 st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
 
+                with col2:
+                    if predicted_class == 1:
+                        st.image(contours_pil, caption="Contours on Image", use_column_width=True)
+                    else:
+                        st.warning(f"Contours are not applicable. This is not a cracked wall.")
+                
+                # Display prediction result
                 if predicted_class == 0:
                     st.success(f"✅ This is a normal brick wall.")
                 elif predicted_class == 1:
                     st.error(f"❌ This wall is a cracked brick wall.")
-                    # Display the contours figure
-                    st.pyplot(contours_fig)
                 elif predicted_class == 2:
                     st.warning(f"⚠️ This is not a brick wall.")
                 else:
