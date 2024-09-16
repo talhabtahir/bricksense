@@ -195,15 +195,15 @@ def import_and_predict(image_data, model):
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-        # Add white borders
-        border_size = 10  # Set the border size
-        image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contours_pil, border_size)
+        # # Add white borders
+        # border_size = 10  # Set the border size
+        # image_with_border = add_white_border(image_data, border_size)
+        # contours_with_border = add_white_border(contours_pil, border_size)
 
         # Apply resizing with padding or without padding as needed
         target_size = (800, 800)  # Define your target size
-        image_with_border = resize_with_padding(image_with_border, target_size)
-        contours_with_border = resize_with_padding(contours_with_border, target_size)
+        image_with_border = resize_with_padding(image_data, target_size)
+        contours_with_border = resize_with_padding(contours_pil, target_size)
 
         return pred_vec, image_with_border, contours_with_border        
     except Exception as e:
