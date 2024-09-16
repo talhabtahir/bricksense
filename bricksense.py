@@ -103,42 +103,42 @@ from PIL import Image
 
 def resize_with_padding(image, target_size):
     """
-    Resize an image to the target size with transparent padding (in RGBA mode).
-    
+    Resize an image to the target size with padding if necessary to maintain aspect ratio.
+
     Parameters:
     - image (PIL.Image.Image): The input image to be resized.
     - target_size (tuple): The target size (width, height) for the output image.
 
     Returns:
-    - PIL.Image.Image: The resized image with transparent padding.
+    - PIL.Image.Image: The resized image with padding.
     """
-    # Ensure the image is in RGBA mode to support transparency
-    if image.mode != 'RGBA':
-        image = image.convert('RGBA')
-
-    # Get original dimensions and aspect ratio
+    # Get the original image size
     original_width, original_height = image.size
+
+    # Calculate the aspect ratio
     aspect_ratio = original_width / original_height
     target_width, target_height = target_size
 
-    # Determine new dimensions while maintaining aspect ratio
+    # Calculate new dimensions and padding
     if target_width / target_height > aspect_ratio:
+        # Width is the limiting factor
         new_width = int(target_height * aspect_ratio)
         new_height = target_height
     else:
+        # Height is the limiting factor
         new_width = target_width
         new_height = int(target_width / aspect_ratio)
 
-    # Resize the image
+    # Resize the image with the new dimensions
     image_resized = image.resize((new_width, new_height), Image.LANCZOS)
 
-    # Create a new transparent image with the target size
-    new_image = Image.new("RGBA", target_size, (0, 0, 0, 0))
-
-    # Paste the resized image onto the transparent background
+    # Create a new image with the target size and white background
+    new_image = Image.new("RGB", target_size, (255, 255, 255))
+    
+    # Paste the resized image onto the new image
     left = (target_width - new_width) // 2
     top = (target_height - new_height) // 2
-    new_image.paste(image_resized, (left, top), image_resized)  # Use image_resized as the mask
+    new_image.paste(image_resized, (left, top))
 
     return new_image
 
