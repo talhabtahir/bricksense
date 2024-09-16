@@ -123,7 +123,7 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, model, sensitivity):
+def import_and_predict(image_data, model, sensitivity=11):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
@@ -239,7 +239,7 @@ else:
             
             
             # Perform prediction
-            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
+            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
