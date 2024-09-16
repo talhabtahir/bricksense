@@ -222,7 +222,7 @@ def import_and_predict(image_data, model):
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
         # Define target size
-        target_size = (500, 500)
+        target_size = (1000, 1000)
 
         # Resize images with padding to target size
         image_with_border = resize_with_padding(image_data, target_size)
