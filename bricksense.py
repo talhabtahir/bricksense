@@ -106,7 +106,7 @@ def import_and_predict(image_data, model, layer_index=10):
 def visualize_heatmap_and_contours(heat_map, contours_img_rgb, original_img):
     fig, ax = plt.subplots(1, 3, figsize=(15, 5))
 
-    # Original Heatmap (224x224)
+    # Heatmap (224x224)
     ax[0].imshow(heat_map, cmap='jet')
     ax[0].set_title('Heatmap (224x224)')
     ax[0].axis('off')
