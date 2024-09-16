@@ -112,7 +112,7 @@ def import_and_predict(image_data, model):
 
         # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[10].output, model.layers[-1].output))
+                             outputs=(model.layers[11].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
 
         # Get the predicted class and confidence
