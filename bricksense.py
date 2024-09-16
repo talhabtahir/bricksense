@@ -184,7 +184,7 @@ def import_and_predict(image_data, model):
         enhancer = ImageEnhance.Brightness(contours_pil)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
-        def resize_and_pad_image(image, target_size):
+        def resize_and_pad_image(image, target_size, padding_color=(255, 255, 255)):
             """Resize and pad image to target size while maintaining aspect ratio."""
             width, height = image.size
             target_width, target_height = target_size
@@ -200,7 +200,7 @@ def import_and_predict(image_data, model):
             resized_image = image.resize((new_width, new_height), Image.LANCZOS)
             
             # Add padding to ensure the image fits the target size
-            padded_image = ImageOps.pad(resized_image, target_size, padding_color=(255, 255, 255))
+            padded_image = ImageOps.pad(resized_image, target_size, padding_color)
             return padded_image
         
         # Define the target size for images
