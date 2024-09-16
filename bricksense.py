@@ -36,7 +36,7 @@ def correct_orientation(image):
         st.error(f"Error correcting orientation: {e}")
     return image
 
-def import_and_predict(image_data, model, layer_index=10):
+def import_and_predict(image_data, model, layer_index=11):
     try:
         # Get original image size
         original_size = image_data.size  # (width, height)
