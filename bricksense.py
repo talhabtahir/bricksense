@@ -264,7 +264,7 @@ else:
                         img2=contours_with_border,
                         label1="Uploaded Image",
                         label2="Cracks Localization",
-                        show_labels=True
+                        show_labels=False
                     )
                 else:
                    image_comparison(
@@ -272,7 +272,7 @@ else:
                         img2=image_with_border,
                         label1="Uploaded Image",
                         label2="Cracks Localization",
-                        show_labels=True
+                        show_labels=False
                     )
                 
         except Exception as e:
