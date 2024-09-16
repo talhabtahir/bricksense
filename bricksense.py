@@ -63,19 +63,21 @@ def import_and_predict(image_data, model, layer_index=10):
         # Average across the depth dimension to generate the heatmap
         heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
 
-        # Normalize the heatmap between 0 and 1 for better visualization
-        heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map /= np.max(heat_map)  # Normalize to 0-1
+        # Apply ReLU to eliminate negative values (to mimic behavior of Code 1)
+        heat_map = np.maximum(heat_map, 0)
 
-        # Resize heatmap to the original image size to match Code 1
+        # Normalize heatmap between 0 and 1
+        heat_map /= np.max(heat_map)
+
+        # Resize heatmap to the original image size (to match Code 1)
         heatmap_resized = cv2.resize(heat_map, (original_width, original_height), interpolation=cv2.INTER_LINEAR)
 
-        # Threshold the heatmap to get regions of interest (similar to Code 1)
-        threshold = 0.5  # Same threshold used in Code 1
+        # Threshold the heatmap to get regions of interest
+        threshold_value = 0.5  # Same threshold used in Code 1
         heat_map_thresh = np.uint8(255 * heatmap_resized)  # Convert heatmap to 8-bit image
-        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold_value), 255, cv2.THRESH_BINARY)
 
-        # Find contours in the thresholded heatmap
+        # Find contours in the thresholded heatmap (exactly as in Code 1)
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         # Convert original image to numpy array (for contour drawing)
@@ -85,7 +87,7 @@ def import_and_predict(image_data, model, layer_index=10):
         if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
             original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
 
-        # Draw contours on the original image (use same settings as in Code 1)
+        # Draw contours on the original image using the same color and thickness as Code 1
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
         cv2.drawContours(original_img_bgr, contours, -1, (0, 255, 0), 2)  # Green contours (BGR)
 
