@@ -59,7 +59,7 @@ st.sidebar.markdown("### ")
 @st.cache_resource
 def load_model():
     try:
-        model = tf.keras.models.load_model('170kmodelv3_version_cam_1.keras')
+        model = tf.keras.models.load_model('170kmodelv10_version_cam_1.keras')
         return model
     except Exception as e:
         st.error(f"Failed to load model: {e}")
