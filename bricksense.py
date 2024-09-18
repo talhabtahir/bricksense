@@ -125,6 +125,7 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model, sensitivity=11):
     try:
+        size = (224, 224)  # Model input size
         # Resize image while maintaining aspect ratio, with padding to the target size
         image_resized = ImageOps.pad(image_data, size, method=Image.LANCZOS, color=(0, 0, 0))
         img = np.asarray(image_resized).astype(np.float32) / 255.0
