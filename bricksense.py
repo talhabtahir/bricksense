@@ -125,7 +125,17 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model, sensitivity=11):
     try:
+         # Get original image size
+        original_size = image_data.size  # (width, height)
+        original_width, original_height = original_size
         size = (224, 224)  # Model input size
+
+        # Calculate the maximum dimension of the original image
+        max_dimension = max(original_width, original_height)
+
+        # Set the scaling factor for contour line thickness based on the max dimension
+        contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
+        
         # Resize image while maintaining aspect ratio, with padding to the target size
         image_resized = ImageOps.pad(image_data, size, method=Image.LANCZOS, color=(0, 0, 0))
         img = np.asarray(image_resized).astype(np.float32) / 255.0
