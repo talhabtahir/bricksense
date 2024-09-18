@@ -136,11 +136,16 @@ def import_and_predict(image_data, model, sensitivity=11):
         # Set the scaling factor for contour line thickness based on the max dimension
         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
         
-        # Resize the image for model prediction while maintaining the aspect ratio
+       
+        # Resize the image while maintaining aspect ratio, then pad it to 224x224
         image_resized = image_data.convert("RGB")
-        image_resized.thumbnail(size, Image.LANCZOS)  # Maintain aspect ratio with thumbnail method
+        image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)  # Exact resize to 224x224
+        
+        # Optionally pad instead of stretching (preserving aspect ratio)
+        image_resized = ImageOps.pad(image_data.convert("RGB"), size, method=Image.LANCZOS)
+        
         img = np.asarray(image_resized).astype(np.float32) / 255.0
-        img_reshape = img[np.newaxis, ...]
+        img_reshape = img[np.newaxis, ...]  # Ensure the shape is (1, 224, 224, 3)
         
         # Get predictions from the model
         custom_model = Model(inputs=model.inputs, 
