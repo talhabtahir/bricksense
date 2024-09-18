@@ -125,24 +125,26 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 # Function to localize the crack and to make predictions using the TensorFlow model
 def import_and_predict(image_data, model, sensitivity=11):
     try:
-         # Get original image size
+        # Get original image size
         original_size = image_data.size  # (width, height)
         original_width, original_height = original_size
         size = (224, 224)  # Model input size
-
+        
         # Calculate the maximum dimension of the original image
         max_dimension = max(original_width, original_height)
-
+        
         # Set the scaling factor for contour line thickness based on the max dimension
         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
         
-        # Resize image while maintaining aspect ratio, with padding to the target size
-        image_resized = ImageOps.pad(image_data, size, method=Image.LANCZOS, color=(0, 0, 0))
+        # Resize the image for model prediction while maintaining the aspect ratio
+        image_resized = image_data.convert("RGB")
+        image_resized.thumbnail(size, Image.LANCZOS)  # Maintain aspect ratio with thumbnail method
         img = np.asarray(image_resized).astype(np.float32) / 255.0
         img_reshape = img[np.newaxis, ...]
         
         # Get predictions from the model
-        custom_model = Model(inputs=model.inputs, outputs=(model.layers[sensitivity].output, model.layers[-1].output))
+        custom_model = Model(inputs=model.inputs, 
+                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))
         layer_output, pred_vec = custom_model.predict(img_reshape)
         
         # Get the predicted class and confidence
@@ -152,14 +154,14 @@ def import_and_predict(image_data, model, sensitivity=11):
         layer_output = np.squeeze(layer_output)  # Shape varies based on the layer
         
         # Average across the depth dimension to generate the heatmap
-        heat_map = np.mean(layer_output, axis=-1)
+        heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
         
         # Normalize the heatmap between 0 and 1 for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map /= np.max(heat_map)  # Normalize to 0-1
         
-        # Resize heatmap to the size of the resized image (224, 224)
-        heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
+        # Resize heatmap to the size of the resized image
+        heatmap_resized = cv2.resize(heat_map, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
         
         # Threshold the heatmap to get regions of interest
         _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
@@ -177,10 +179,11 @@ def import_and_predict(image_data, model, sensitivity=11):
         # Draw contours on the original image, but scale contours to the original size
         original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
         
-        # Scale contours back to original image size
-        scale_x = original_width / size[0]
-        scale_y = original_height / size[1]
+        # Compute the scaling factor for width and height separately
+        scale_x = original_width / image_resized.size[0]
+        scale_y = original_height / image_resized.size[1]
         
+        # Adjust the scaling more precisely based on aspect ratio consistency
         def scale_contours(contours, scale_x, scale_y):
             scaled_contours = []
             for contour in contours:
@@ -199,7 +202,7 @@ def import_and_predict(image_data, model, sensitivity=11):
         # Convert to a PIL Image for display in Streamlit
         contours_pil2 = Image.fromarray(contours_img_rgb)
         
-        # Apply Brightness or Contrast Enhancement
+        # --- Apply Brightness or Contrast Enhancement ---
         enhancer = ImageEnhance.Brightness(contours_pil2)
         contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
         
@@ -209,6 +212,7 @@ def import_and_predict(image_data, model, sensitivity=11):
         contours_with_border = add_white_border(contours_pil, border_size)
         
         return pred_vec, image_with_border, contours_with_border, contours_pil2
+
     
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
