@@ -169,7 +169,7 @@ def import_and_predict(image_data, model, sensitivity=11):
         heatmap_resized = cv2.resize(heat_map, (img.shape[1], img.shape[0]), interpolation=cv2.INTER_LINEAR)
         
         # Threshold the heatmap to get regions of interest
-        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 100, 255, cv2.THRESH_BINARY)
+        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 50, 255, cv2.THRESH_BINARY)
         
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
