@@ -175,7 +175,7 @@ def import_and_predict(image_data, sensitivity=10):
 
         # Draw contours on the original image
         contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), contour_thickness)  # Draw green contours
+        cv2.drawContours(contoured_img, contours, -1, (255, 0, 0), contour_thickness)  # Draw green contours
 
         # Convert the heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
