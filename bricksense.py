@@ -53,7 +53,7 @@ st.markdown(
 #     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
+st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
 # # Use the helper function to encode the image
 # encoded_logo = image_to_base64(imagelogo)
 
