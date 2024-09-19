@@ -8,14 +8,14 @@ from streamlit_image_comparison import image_comparison
 import math
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
-import io
-import base64
+# import io
+# import base64
 
 # Set the page configuration with favicon
 st.set_page_config(
     page_title="Brick Detection",
     page_icon="static/brickicon8.png",  # Path to your favicon file
-    layout="wide"
+    layout="centered"
 )
 
 # Custom CSS for additional styling
@@ -46,26 +46,26 @@ st.markdown(
 )
 
 
-# Helper function to convert image to base64
-def image_to_base64(img):
-    buffered = io.BytesIO()
-    img.save(buffered, format="PNG")
-    return base64.b64encode(buffered.getvalue()).decode()
+# # Helper function to convert image to base64
+# def image_to_base64(img):
+#     buffered = io.BytesIO()
+#     img.save(buffered, format="PNG")
+#     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-# st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
-# Use the helper function to encode the image
-encoded_logo = image_to_base64(imagelogo)
+st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
+# # Use the helper function to encode the image
+# encoded_logo = image_to_base64(imagelogo)
 
-# Center the logo using custom HTML and CSS
-st.markdown(
-    """
-    <div style='text-align: center;'>
-        <img src='data:image/png;base64,{}' width='600'>
-    </div>
-    """.format(encoded_logo),
-    unsafe_allow_html=True
-)
+# # Center the logo using custom HTML and CSS
+# st.markdown(
+#     """
+#     <div style='text-align: center;'>
+#         <img src='data:image/png;base64,{}' width='600'>
+#     </div>
+#     """.format(encoded_logo),
+#     unsafe_allow_html=True
+# )
 
 
 
