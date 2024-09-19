@@ -181,7 +181,7 @@ def import_and_predict(image_data, sensitivity=10):
         
         # Create contoured image
         contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), contour_thickness)  # Draw green contours
+        cv2.drawContours(contoured_img, contours, -1, (0, 0, 255), contour_thickness)  # Draw blue contours
         
         # Convert contoured image to PIL format
         contoured_image = Image.fromarray(contoured_img)
@@ -193,7 +193,7 @@ def import_and_predict(image_data, sensitivity=10):
 
         # Draw contours on the heatmap-overlayed image
         heatmap_overlay_np = np.array(heatmap_overlay)
-        cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 255, 0), 2)  # Draw green contours
+        cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 0, 255), contour_thickness)  # Draw blue contours
 
         # Convert overlay image to PIL format
         overlay_img = Image.fromarray(heatmap_overlay_np)
