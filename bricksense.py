@@ -45,7 +45,18 @@ st.markdown(
 
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
+# st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
+# Center the logo using custom HTML and CSS
+st.markdown(
+    """
+    <div style='text-align: center;'>
+        <img src='data:image/png;base64,{}' width='600'>
+    </div>
+    """.format(st.image_to_base64(imagelogo)),
+    unsafe_allow_html=True
+)
+
+
 
 # Add space below the logo
 st.write("")  # Creates a blank line
