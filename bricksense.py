@@ -450,24 +450,59 @@ else:
                     # Resize image accordingly to fit within the expander's width
                     img1_resized = image_with_border.resize((max_width, int(image_with_border.height * (max_width / image_with_border.width))))
                     img2_resized = contours_with_border.resize((max_width, int(contours_with_border.height * (max_width / contours_with_border.width))))
+
+                    # HTML/CSS for centering the images
+                    center_style = """
+                    <style>
+                    .centered-image-container {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    </style>
+                    """
+                    st.markdown(center_style, unsafe_allow_html=True)
                 
                     # Conditionally display image comparison
                     if predicted_class == 1:
+                        # Use a centered container div for image comparison
+                        st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
                         image_comparison(
-                            img1=image_with_border, 
-                            img2=contours_with_border,
+                            img1=img1_resized, 
+                            img2=img2_resized,
                             label1="Uploaded Image",
                             label2="Cracks Localization",
                             show_labels=False
                         )
+                        st.markdown('</div>', unsafe_allow_html=True)
                     else:
+                        # Use a centered container div for the same image comparison
+                        st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
                         image_comparison(
-                            img1=image_with_border, 
-                            img2=image_with_border,
+                            img1=img1_resized, 
+                            img2=img1_resized,
                             label1="Uploaded Image",
                             label2="Cracks Localization",
                             show_labels=False
                         )
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    # # Conditionally display image comparison
+                    # if predicted_class == 1:
+                    #     image_comparison(
+                    #         img1=image_with_border, 
+                    #         img2=contours_with_border,
+                    #         label1="Uploaded Image",
+                    #         label2="Cracks Localization",
+                    #         show_labels=False
+                    #     )
+                    # else:
+                    #     image_comparison(
+                    #         img1=image_with_border, 
+                    #         img2=image_with_border,
+                    #         label1="Uploaded Image",
+                    #         label2="Cracks Localization",
+                    #         show_labels=False
+                    #     )
 
         except Exception as e:
             st.error(f"Error processing the uploaded image: {e}")
