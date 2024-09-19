@@ -454,16 +454,16 @@ else:
                     # Conditionally display image comparison
                     if predicted_class == 1:
                         image_comparison(
-                            img1=img1_resized, 
-                            img2=img2_resized,
+                            img1=image_with_border, 
+                            img2=contours_with_border,
                             label1="Uploaded Image",
                             label2="Cracks Localization",
                             show_labels=False
                         )
                     else:
                         image_comparison(
-                            img1=img1_resized, 
-                            img2=img1_resized,
+                            img1=image_with_border, 
+                            img2=image_with_border,
                             label1="Uploaded Image",
                             label2="Cracks Localization",
                             show_labels=False
