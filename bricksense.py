@@ -259,13 +259,20 @@ else:
                 predictions, image_with_border, contours_with_border, heatmap_image, contoured_image = import_and_predict(image, sensitivity=sensitivity)
 
                 # Display the uploaded image and the contours side by side
-                col1, col2 = st.columns(2)
+                col1, col2, col3= st.columns(3)
     
                 with col1:
                     st.image(image, caption="Uploaded Image", use_column_width=True)
                 with col2:
                     if predicted_class == 1:
-                        st.image(contoured_image, caption="Cracks Localization", use_column_width=True)
+                        st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
+                    elif predicted_class == 0:
+                        st.image(image, caption="No cracks detected", use_column_width=True)
+                    else:
+                        st.image(image, caption="No wall detected", use_column_width=True)
+                with col3:
+                    if predicted_class == 1:
+                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
                     elif predicted_class == 0:
                         st.image(image, caption="No cracks detected", use_column_width=True)
                     else:
