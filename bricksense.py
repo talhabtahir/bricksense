@@ -381,41 +381,41 @@ else:
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 st.write("")  # Creates a blank line
                 if st.checkbox("Original vs Cracked Slider"):
-                # HTML/CSS for centering the image comparison component
-                center_style = """
-                <style>
-                .centered-image-container {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                }
-                </style>
-                """
-                st.markdown(center_style, unsafe_allow_html=True)
+                    # HTML/CSS for centering the image comparison component
+                    center_style = """
+                    <style>
+                    .centered-image-container {
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    }
+                    </style>
+                    """
+                    st.markdown(center_style, unsafe_allow_html=True)
+                    
+                    # Opening div tag to center the image comparison component
+                    st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
+                    
+                    # Conditionally display image comparison
+                    if predicted_class == 1:
+                        image_comparison(
+                            img1=image_with_border, 
+                            img2=contours_with_border,
+                            label1="Uploaded Image",
+                            label2="Cracks Localization",
+                            show_labels=False,
+                        )
+                    else:
+                        image_comparison(
+                            img1=image_with_border, 
+                            img2=image_with_border,
+                            label1="Uploaded Image",
+                            label2="Cracks Localization",
+                            show_labels=False,
+                        )
                 
-                # Opening div tag to center the image comparison component
-                st.markdown('<div class="centered-image-container">', unsafe_allow_html=True)
-                
-                # Conditionally display image comparison
-                if predicted_class == 1:
-                    image_comparison(
-                        img1=image_with_border, 
-                        img2=contours_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False,
-                    )
-                else:
-                    image_comparison(
-                        img1=image_with_border, 
-                        img2=image_with_border,
-                        label1="Uploaded Image",
-                        label2="Cracks Localization",
-                        show_labels=False,
-                    )
-            
-                # Closing div tag
-                st.markdown('</div>', unsafe_allow_html=True)
+                    # Closing div tag
+                    st.markdown('</div>', unsafe_allow_html=True)
                             
                 # if st.checkbox("Original vs Cracked Slider"):
                 #         # Conditionally display image comparison
