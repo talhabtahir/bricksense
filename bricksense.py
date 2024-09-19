@@ -46,13 +46,26 @@ st.markdown(
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
 # st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
-# Center the logo using custom HTML and CSS
+# Use CSS to center the image
 st.markdown(
     """
-    <div style='text-align: center;'>
-        <img src='data:image/png;base64,{}' width='600'>
+    <style>
+    .center {
+        display: flex;
+        justify-content: center;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Display the image within a div with the 'center' class
+st.markdown(
+    """
+    <div class='center'>
+        <img src='static/sidelogo.png' width='150'>
     </div>
-    """.format(st.image_to_base64(imagelogo)),
+    """,
     unsafe_allow_html=True
 )
 
