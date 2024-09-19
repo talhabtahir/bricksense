@@ -208,7 +208,7 @@ def import_and_predict(image_data, sensitivity=10):
         # Add white borders
         border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contoured_image, border_size)
+        contours_with_border = add_white_border(overlay_img, border_size)
 
         return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img 
     except Exception as e:
