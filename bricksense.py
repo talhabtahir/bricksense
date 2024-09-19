@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 st.set_page_config(
     page_title="Brick Detection",
     page_icon="static/brickicon8.png",  # Path to your favicon file
-    layout="centered"
+    layout="wide"
 )
 
 # Custom CSS for additional styling
@@ -78,7 +78,7 @@ Talha Bin Tahir
 """)
 
 # Main area for image upload
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), label_visibility="hidden")
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
