@@ -61,7 +61,7 @@ encoded_logo = image_to_base64(imagelogo)
 st.markdown(
     """
     <div style='text-align: center;'>
-        <img src='data:image/png;base64,{}' width='150'>
+        <img src='data:image/png;base64,{}' width='600'>
     </div>
     """.format(encoded_logo),
     unsafe_allow_html=True
