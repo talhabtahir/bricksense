@@ -380,68 +380,68 @@ else:
                 # st.write(f"Cracked Wall: {prediction_percentages[1]:.2f}%")
                 # st.write(f"Not a Wall: {prediction_percentages[2]:.2f}%")
                 st.write("")  # Creates a blank line
-                if st.checkbox("Original vs Cracked Slider"):
-                        # Conditionally display image comparison
-                        if predicted_class == 1:
-                            image_comparison(
-                                img1=image_with_border, 
-                                img2=contours_with_border,
-                                label1="Uploaded Image",
-                                label2="Cracks Localization",
-                                show_labels=False,
-                                # width=670,
-                                # make_responsive=True,
-                                # in_memory=True
-                            )
-                        else:
-                           image_comparison(
-                                img1=image_with_border, 
-                                img2=image_with_border,
-                                label1="Uploaded Image",
-                                label2="Cracks Localization",
-                                show_labels=False,
-                                # width=670,
-                                # make_responsive=True,
-                                # in_memory=True
-                            )
+                # if st.checkbox("Original vs Cracked Slider"):
+                #         # Conditionally display image comparison
+                #         if predicted_class == 1:
+                #             image_comparison(
+                #                 img1=image_with_border, 
+                #                 img2=contours_with_border,
+                #                 label1="Uploaded Image",
+                #                 label2="Cracks Localization",
+                #                 show_labels=False,
+                #                 # width=670,
+                #                 # make_responsive=True,
+                #                 # in_memory=True
+                #             )
+                #         else:
+                #            image_comparison(
+                #                 img1=image_with_border, 
+                #                 img2=image_with_border,
+                #                 label1="Uploaded Image",
+                #                 label2="Cracks Localization",
+                #                 show_labels=False,
+                #                 # width=670,
+                #                 # make_responsive=True,
+                #                 # in_memory=True
+                #             )
 
-                # # Conditionally display image comparison
-                # if predicted_class == 1:
-                #     st.markdown(
-                #         """
-                #         <div style='display: flex; justify-content: center; align-items: center;'>
-                #         """, 
-                #         unsafe_allow_html=True
-                #     )
-                #     image_comparison(
-                #         img1=image_with_border, 
-                #         img2=contours_with_border,
-                #         label1="Uploaded Image",
-                #         label2="Cracks Localization",
-                #         show_labels=False,
-                #         # width=670,
-                #         make_responsive=True,
-                #         in_memory=True
-                #     )
-                #     st.markdown("</div>", unsafe_allow_html=True)
-                # else:
-                #     st.markdown(
-                #         """
-                #         <div style='display: flex; justify-content: center; align-items: center;'>
-                #         """, 
-                #         unsafe_allow_html=True
-                #     )
-                #     image_comparison(
-                #         img1=image_with_border, 
-                #         img2=image_with_border,
-                #         label1="Uploaded Image",
-                #         label2="Cracks Localization",
-                #         show_labels=False,
-                #         # width=670,
-                #         make_responsive=True,
-                #         in_memory=True
-                #     )
-                #     st.markdown("</div>", unsafe_allow_html=True)
+                # Conditionally display image comparison
+                if predicted_class == 1:
+                    st.markdown(
+                        """
+                        <div style='display: flex; justify-content: center; align-items: center;'>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    image_comparison(
+                        img1=image_with_border, 
+                        img2=contours_with_border,
+                        label1="Uploaded Image",
+                        label2="Cracks Localization",
+                        show_labels=False,
+                        # width=670,
+                        make_responsive=True,
+                        in_memory=True
+                    )
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.markdown(
+                        """
+                        <div style='display: flex; justify-content: center; align-items: center;'>
+                        """, 
+                        unsafe_allow_html=True
+                    )
+                    image_comparison(
+                        img1=image_with_border, 
+                        img2=image_with_border,
+                        label1="Uploaded Image",
+                        label2="Cracks Localization",
+                        show_labels=False,
+                        # width=670,
+                        make_responsive=True,
+                        in_memory=True
+                    )
+                    st.markdown("</div>", unsafe_allow_html=True)
 
                 # with st.expander("Original vs Cracked Slider"):
                 #     # Define a maximum width for the images based on a rough estimate or browser inspection
