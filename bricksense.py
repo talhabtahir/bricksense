@@ -8,6 +8,8 @@ from streamlit_image_comparison import image_comparison
 import math
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
+import io
+import base64
 
 # Set the page configuration with favicon
 st.set_page_config(
