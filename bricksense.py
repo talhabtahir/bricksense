@@ -196,7 +196,7 @@ def import_and_predict(image_data, sensitivity=10):
         heatmap_overlay_rgb = heatmap_overlay.convert("RGB")
         heatmap_overlay_rgb_np = np.array(heatmap_overlay_rgb)
         # heatmap_overlay_np = np.array(heatmap_overlay)
-        cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (255, 255, 255), contour_thickness)  # Draw blue contours
+        cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (0, 0, 0), contour_thickness)  # Draw blue contours
 
         # Convert overlay image to PIL format
         overlay_img = Image.fromarray(heatmap_overlay_rgb_np)
