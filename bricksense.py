@@ -196,7 +196,7 @@ def import_and_predict(image_data, sensitivity=10):
         cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 255, 0), 2)  # Draw green contours
 
         # Convert overlay image to PIL format
-        overlay_image = Image.fromarray(heatmap_overlay_np)
+        overlay_img = Image.fromarray(heatmap_overlay_np)
 
         # Get the predicted class name
         class_labels = ["Normal", "Cracked", "Not a Wall"]
