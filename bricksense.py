@@ -63,7 +63,7 @@ st.markdown(
 st.markdown(
     """
     <div class='center'>
-        <img src='static/sidelogo.png' width='150'>
+        <img src='static/sidelogo.png' width='600'>
     </div>
     """,
     unsafe_allow_html=True
