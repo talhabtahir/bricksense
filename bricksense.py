@@ -133,6 +133,12 @@ def import_and_predict(image_data, sensitivity=10):
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
 
+        # Calculate the maximum dimension of the original image
+        max_dimension = max(orig_width, orig_height)
+
+        # Set the scaling factor for contour line thickness based on the max dimension
+        contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
+
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
@@ -169,7 +175,7 @@ def import_and_predict(image_data, sensitivity=10):
 
         # Draw contours on the original image
         contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), contour_thickness)  # Draw green contours
 
         # Convert the heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
@@ -253,7 +259,7 @@ else:
                         "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
                         min_value=1,   # Minimum value for sensitivity
                         max_value=12,   # Maximum value for sensitivity
-                        value=11,       # Default value for sensitivity
+                        value=10,       # Default value for sensitivity
                         step=1,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
