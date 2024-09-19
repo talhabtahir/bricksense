@@ -123,95 +123,70 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, model, sensitivity=10):
+def import_and_predict(image_data, sensitivity=10):
     try:
-        # Get original image size
-        original_size = image_data.size  # (width, height)
-        original_width, original_height = original_size
-        size = (224, 224)  # Model input size
-
-        # Calculate the maximum dimension of the original image
-        max_dimension = max(original_width, original_height)
-
-        # Set the scaling factor for contour line thickness based on the max dimension
-        contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
+        # Convert image to numpy array
+        original_img = np.array(image_data)
         
-        # Resize the image for model prediction
-        image_resized = image_data.convert("RGB")
-        image_resized = ImageOps.fit(image_resized, size, Image.LANCZOS)
-        img = np.asarray(image_resized).astype(np.float32) / 255.0
-        img_reshape = img[np.newaxis, ...]
+        # Save original dimensions
+        orig_height, orig_width, _ = original_img.shape
 
-        # Get predictions from the model
+        # Preprocess the image for the model
+        img_resized = cv2.resize(original_img, (224, 224))
+        img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
+        preprocessed_img = img_tensor
+        
+        # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))
-        layer_output, pred_vec = custom_model.predict(img_reshape)
+                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))  # `conv2d_3` and predictions
 
-        # Get the predicted class and confidence
+        # Get the conv2d_3 output and the predictions
+        conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
+        conv2d_3_output = np.squeeze(conv2d_3_output)  # (28, 28, 32) feature maps
+
+        # Prediction for the image
         pred = np.argmax(pred_vec)
+        
+        # Resize the conv2d_3 output to match the input image size
+        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
 
-        # Extract the feature map output
-        layer_output = np.squeeze(layer_output)  # Shape varies based on the layer
+        # Average all the filters from conv2d_3 to get a single activation map
+        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (224, 224)
 
-        # Average across the depth dimension to generate the heatmap
-        heat_map = np.mean(layer_output, axis=-1)  # Shape depends on the layer
-
-        # Normalize the heatmap between 0 and 1 for better visualization
+        # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
-        heat_map /= np.max(heat_map)  # Normalize to 0-1
+        heat_map = heat_map / heat_map.max()  # Normalize to 0-1
 
-        # Resize heatmap to the size of the resized image (224, 224)
-        heatmap_resized = cv2.resize(heat_map, size, interpolation=cv2.INTER_LINEAR)
-
-        # Threshold the heatmap to get regions of interest
-        _, thresh_map = cv2.threshold(np.uint8(255 * heatmap_resized), 127, 255, cv2.THRESH_BINARY)
+        # Threshold the heatmap to get the regions with the highest activation
+        threshold = 0.5  # Adjust this threshold if needed
+        heat_map_thresh = np.uint8(255 * heat_map)
+        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
 
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
-        # Convert original image to numpy array (for contour drawing)
-        original_img_np = np.array(image_data)
+        # Draw contours on the original image
+        contoured_img = original_img.copy()  # Copy original image
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), 2)  # Draw green contours
 
-        # Ensure the original image is in 3 channels (RGB) for contour drawing
-        if len(original_img_np.shape) == 2:  # If grayscale, convert to RGB
-            original_img_np = cv2.cvtColor(original_img_np, cv2.COLOR_GRAY2RGB)
-
-        # Draw contours on the original image, but scale contours to the original size
-        original_img_bgr = cv2.cvtColor(original_img_np, cv2.COLOR_RGB2BGR)
-
-        # Scale contours back to original image size
-        scale_x = original_width / size[0]
-        scale_y = original_height / size[1]
+        # Convert the heatmap to RGB for display
+        heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
         
-        # Adjust the scaling more precisely based on aspect ratio consistency
-        def scale_contours(contours, scale_x, scale_y):
-            scaled_contours = []
-            for contour in contours:
-                scaled_contour = np.array([[int(point[0][0] * scale_x), int(point[0][1] * scale_y)] for point in contour])
-                scaled_contours.append(scaled_contour)
-            return scaled_contours
+        # Convert heatmap and contoured images to PIL format for Streamlit
+        heatmap_image = Image.fromarray(heatmap_colored)
+        contoured_image = Image.fromarray(contoured_img)
 
-        scaled_contours = scale_contours(contours, scale_x, scale_y)
+        # Get the predicted class name
+        class_labels = ["Normal", "Cracked", "Not a Wall"]
+        predicted_class = class_labels[pred]
 
-        # Draw scaled contours on the original image (in blue BGR: (255, 0, 0))
-        cv2.drawContours(original_img_bgr, scaled_contours, -1, (255, 0, 0), contour_thickness)  # Blue contours
-
-        # Convert the image back to RGB
-        contours_img_rgb = cv2.cvtColor(original_img_bgr, cv2.COLOR_BGR2RGB)
-
-        # Convert to a PIL Image for display in Streamlit
-        contours_pil2 = Image.fromarray(contours_img_rgb)
-
-        # --- Apply Brightness or Contrast Enhancement ---
-        enhancer = ImageEnhance.Brightness(contours_pil2)
-        contours_pil = enhancer.enhance(0.8)  # 0.8 to darken, 1.2 to lighten
 
                 # Add white borders
         border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
-        contours_with_border = add_white_border(contours_pil, border_size)
+        contours_with_border = add_white_border(contoured_image, border_size)
 
-        return pred_vec, image_with_border, contours_with_border, contours_pil2     
+        return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image  
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
         return None, None
@@ -239,7 +214,7 @@ else:
             
             
             # Perform prediction
-            predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model)
+            predictions, image_with_border, contours_with_border, heatmap_image, contoured_image = import_and_predict(image)
             
             if predictions is not None:
                 predicted_class = np.argmax(predictions)
@@ -281,7 +256,7 @@ else:
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
                 # Perform prediction again
-                predictions, image_with_border, contours_with_border, contours_pil2 = import_and_predict(image, model, sensitivity=sensitivity)
+                predictions, image_with_border, contours_with_border, heatmap_image, contoured_image = import_and_predict(image, sensitivity=sensitivity)
 
                 # Display the uploaded image and the contours side by side
                 col1, col2 = st.columns(2)
@@ -290,7 +265,7 @@ else:
                     st.image(image, caption="Uploaded Image", use_column_width=True)
                 with col2:
                     if predicted_class == 1:
-                        st.image(contours_pil2, caption="Cracks Localization", use_column_width=True)
+                        st.image(contoured_image, caption="Cracks Localization", use_column_width=True)
                     elif predicted_class == 0:
                         st.image(image, caption="No cracks detected", use_column_width=True)
                     else:
