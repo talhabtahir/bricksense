@@ -199,6 +199,7 @@ def import_and_predict(image_data, sensitivity=10):
         overlay_image = Image.fromarray(heatmap_overlay_np)
 
         # Get the predicted class name
+        class_labels = ["Normal", "Cracked", "Not a Wall"]
         predicted_class = class_labels[pred]
 
         # Add white borders
