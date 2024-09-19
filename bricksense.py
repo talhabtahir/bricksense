@@ -45,7 +45,7 @@ st.markdown(
 
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
+st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
 
 # Add space below the logo
 st.write("")  # Creates a blank line
