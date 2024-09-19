@@ -6,6 +6,8 @@ import cv2
 from keras.models import Model
 from streamlit_image_comparison import image_comparison
 import math
+import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 
 # Set the page configuration with favicon
 st.set_page_config(
