@@ -138,7 +138,7 @@ def import_and_predict(image_data, sensitivity=10):
         
         # Set the scaling factor for contour line thickness based on the max dimension
         contour_thickness = max(2, int(max_dimension / 200))  # Adjust the divisor to control scaling
-        
+
         # Preprocess the image for the model
         img_resized = cv2.resize(original_img, (224, 224))
         img_tensor = np.expand_dims(img_resized, axis=0) / 255.0
@@ -146,58 +146,66 @@ def import_and_predict(image_data, sensitivity=10):
         
         # Define a new model that outputs the conv2d_3 feature maps and the prediction
         custom_model = Model(inputs=model.inputs, 
-                             outputs=(model.layers[sensitivity].output, model.layers[-1].output))  # `conv2d_3` and predictions
-        
+                             outputs=(model.layers[10].output, model.layers[-1].output))  # `conv2d_3` and predictions
+
         # Get the conv2d_3 output and the predictions
         conv2d_3_output, pred_vec = custom_model.predict(preprocessed_img)
         conv2d_3_output = np.squeeze(conv2d_3_output)  # (28, 28, 32) feature maps
-        
+
         # Prediction for the image
         pred = np.argmax(pred_vec)
         
         # Resize the conv2d_3 output to match the input image size
-        upsampled_conv2d_3_output = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
-        
+        heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height), interpolation=cv2.INTER_LINEAR)
+
         # Average all the filters from conv2d_3 to get a single activation map
-        heat_map = np.mean(upsampled_conv2d_3_output, axis=-1)  # (224, 224)
-        
+        heat_map = np.mean(heat_map_resized, axis=-1)  # (orig_height, orig_width)
+
         # Normalize the heatmap for better visualization
         heat_map = np.maximum(heat_map, 0)  # ReLU to eliminate negative values
         heat_map = heat_map / heat_map.max()  # Normalize to 0-1
-        
+
         # Threshold the heatmap to get the regions with the highest activation
         threshold = 0.5  # Adjust this threshold if needed
         heat_map_thresh = np.uint8(255 * heat_map)
         _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
-        
+
         # Find contours in the thresholded heatmap
         contours, _ = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # Draw contours on the original image
-        contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 0, 255), contour_thickness)  # Draw red contours
-        
-        # Convert the heatmap to RGB for display
+
+        # Convert heatmap to RGB for display
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
         
-        # Convert heatmap and contoured images to PIL format for Streamlit
+        # Convert heatmap to PIL format
         heatmap_image = Image.fromarray(heatmap_colored)
+        
+        # Create contoured image
+        contoured_img = original_img.copy()  # Copy original image
+        cv2.drawContours(contoured_img, contours, -1, (0, 255, 0), contour_thickness)  # Draw green contours
+        
+        # Convert contoured image to PIL format
         contoured_image = Image.fromarray(contoured_img)
-        
-        # Create the overlay image
-        # Convert heatmap to RGBA
-        heatmap_colored = np.concatenate([heatmap_colored, np.full((heat_map.shape[0], heat_map.shape[1], 1), 128, dtype=np.uint8)], axis=-1)
-        heatmap_image = Image.fromarray(heatmap_colored)
-        
+
         # Overlay heatmap on original image
-        original_img_pil = Image.fromarray(original_img)
-        overlay_img = Image.blend(original_img_pil, heatmap_image, alpha=0.5)  # Adjust alpha as needed
-        
+        heatmap_image_rgba = heatmap_image.convert("RGBA")
+        original_img_pil = Image.fromarray(original_img).convert("RGBA")
+        heatmap_overlay = Image.blend(original_img_pil, heatmap_image_rgba, alpha=0.5)
+
+        # Draw contours on the heatmap-overlayed image
+        heatmap_overlay_np = np.array(heatmap_overlay)
+        cv2.drawContours(heatmap_overlay_np, contours, -1, (0, 255, 0), 2)  # Draw green contours
+
+        # Convert overlay image to PIL format
+        overlay_image = Image.fromarray(heatmap_overlay_np)
+
+        # Get the predicted class name
+        predicted_class = class_labels[pred]
+
         # Add white borders
         border_size = 10  # Set the border size
         image_with_border = add_white_border(image_data, border_size)
         contours_with_border = add_white_border(contoured_image, border_size)
-        
+
         return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img 
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
