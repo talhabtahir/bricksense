@@ -43,29 +43,25 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
+# Helper function to convert image to base64
+def image_to_base64(img):
+    buffered = io.BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
 # st.image(imagelogo, use_column_width=False, width=150)  # Update the path to your logo file
-# Use CSS to center the image
-st.markdown(
-    """
-    <style>
-    .center {
-        display: flex;
-        justify-content: center;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# Use the helper function to encode the image
+encoded_logo = image_to_base64(imagelogo)
 
-# Display the image within a div with the 'center' class
+# Center the logo using custom HTML and CSS
 st.markdown(
     """
-    <div class='center'>
-        <img src='static/sidelogo.png' width='600'>
+    <div style='text-align: center;'>
+        <img src='data:image/png;base64,{}' width='150'>
     </div>
-    """,
+    """.format(encoded_logo),
     unsafe_allow_html=True
 )
 
