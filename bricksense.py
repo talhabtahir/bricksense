@@ -78,7 +78,7 @@ Talha Bin Tahir
 """)
 
 # Main area for image upload
-file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), label_visibility="collapsed")
+file = st.file_uploader("Please upload an image of the brick wall", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"), label_visibility="hidden")
 
 # Function to correct image orientation based on EXIF data
 def correct_orientation(image):
