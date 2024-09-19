@@ -282,32 +282,39 @@ else:
                 # Perform prediction again
                 predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
 
-                # Display the uploaded image and the contours side by side
-                col1, col2, col3, col4= st.columns(4)
-    
+                # Define two main columns
+                col1, col2 = st.columns(2)
+                
+                # In the first main column, define two sub-columns
                 with col1:
-                    st.image(image, caption="Uploaded Image", use_column_width=True)
+                    subcol1, subcol2 = st.columns(2)
+                    with subcol1:
+                        st.image(image, caption="Uploaded Image", use_column_width=True)
+                    with subcol2:
+                        if predicted_class == 1:
+                            st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
+                        elif predicted_class == 0:
+                            st.image(image, caption="No cracks detected", use_column_width=True)
+                        else:
+                            st.image(image, caption="No wall detected", use_column_width=True)
+                
+                # In the second main column, define two sub-columns
                 with col2:
-                    if predicted_class == 1:
-                        st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
-                with col3:
-                    if predicted_class == 1:
-                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
-                with col4:
-                    if predicted_class == 1:
-                        st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
-                    elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
-                    else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
+                    subcol3, subcol4 = st.columns(2)
+                    with subcol3:
+                        if predicted_class == 1:
+                            st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
+                        elif predicted_class == 0:
+                            st.image(image, caption="No cracks detected", use_column_width=True)
+                        else:
+                            st.image(image, caption="No wall detected", use_column_width=True)
+                    with subcol4:
+                        if predicted_class == 1:
+                            st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
+                        elif predicted_class == 0:
+                            st.image(image, caption="No cracks detected", use_column_width=True)
+                        else:
+                            st.image(image, caption="No wall detected", use_column_width=True)
 
 
 
