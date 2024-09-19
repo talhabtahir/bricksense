@@ -181,7 +181,7 @@ def import_and_predict(image_data, sensitivity=10):
         
         # Create contoured image
         contoured_img = original_img.copy()  # Copy original image
-        cv2.drawContours(contoured_img, contours, -1, (0, 0, 255), contour_thickness)  # Draw blue contours
+        cv2.drawContours(contoured_img, contours, -1, (255, 255, 255), contour_thickness)  # Draw blue contours
         
         # Convert contoured image to PIL format
         contoured_image = Image.fromarray(contoured_img)
