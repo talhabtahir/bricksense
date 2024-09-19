@@ -201,7 +201,7 @@ def import_and_predict(image_data, sensitivity=10):
         return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img 
     except Exception as e:
         st.error(f"An error occurred during prediction: {e}")
-        return None, None
+        return None, None, None, None, None, None
         
 # Adds border to the image
 
