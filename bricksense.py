@@ -18,32 +18,30 @@ st.set_page_config(
     layout="centered"
 )
 
-# Custom CSS for additional styling
-st.markdown(
-    """
-    <link rel="icon" href="static/brickicon8.png" type="image/x-icon">
-    <style>
-        .reportview-container {
-            background-color: #f7f9fc;
-            padding-top: 20px;
-        }
-        .sidebar .sidebar-content {
-            background-color: #f7f9fc;
-        }
-        .main-header {
-            color: #ff6347;
-            text-align: center;
-        }
-        .footer {
-            text-align: center;
-            padding: 10px;
-            font-size: small;
-            color: #666;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# CSS to hide Streamlit elements
+hide_elements = """
+<style>
+/* Hide the top-right hamburger menu */
+#MainMenu {visibility: hidden;}
+
+/* Hide the footer */
+footer {visibility: hidden;}
+
+/* Hide GitHub link (find the right class or use a general approach) */
+a[href*="github.com"] {
+    display: none !important;
+}
+
+/* Hide "Fork me on GitHub" ribbon if it exists */
+iframe[title="Fork me on GitHub"] {
+    display: none !important;
+}
+</style>
+"""
+
+# Inject custom CSS
+st.markdown(hide_elements, unsafe_allow_html=True)
+
 
 
 # # Helper function to convert image to base64
