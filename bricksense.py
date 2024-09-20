@@ -25,6 +25,7 @@ hide_github_style = """
 <style>
 /* Hide the top-right menu entirely (including GitHub links) */
 header {visibility: hidden;}
+footer {visibility: visible;}
 
 /* Alternatively, to hide just specific links */
 /* Target GitHub repo link and fork link directly by their classes or IDs */
