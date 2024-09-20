@@ -18,16 +18,6 @@ st.set_page_config(
     layout="centered"
 )
 
-hide_github_link_style = """
-<style>
-#MainMenu {visibility: hidden;} /* Hides the main menu */
-footer {visibility: hidden;} /* Hides the footer */
-.stGithub {display: none;} /* Hides the GitHub link, use the correct class name here */
-</style>
-"""
-st.markdown(hide_github_link_style, unsafe_allow_html=True)
-
-
 # Custom CSS for additional styling
 st.markdown(
     """
