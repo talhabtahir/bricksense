@@ -21,27 +21,51 @@ st.set_page_config(
 # import streamlit as st
 
 # Custom CSS to hide specific Streamlit elements
-hide_github_style = """
+# hide_github_style = """
+# <style>
+# /* Hide the top-right menu entirely (including GitHub links) */
+# header {visibility: hidden;}
+# footer {visibility: visible;}
+
+# /* Alternatively, to hide just specific links */
+# /* Target GitHub repo link and fork link directly by their classes or IDs */
+# /* Uncomment and modify the lines below based on the inspection */
+
+# /* a[href*="github.com/your-repo-name"] {display: none !important;} */
+
+# /* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
+
+# /* iframe[src*="github.com"] {display: none !important;} */
+
+# </style>
+# """
+
+# # Inject the custom CSS into the Streamlit app
+# st.markdown(hide_github_style, unsafe_allow_html=True)
+import streamlit as st
+
+# Custom CSS to hide only specific elements but keep the footer visible
+hide_specific_elements_style = """
 <style>
-/* Hide the top-right menu entirely (including GitHub links) */
-header {visibility: hidden;}
-footer {visibility: visible;}
+/* Hide specific GitHub links by their href attribute */
+a[href*="github.com"] {
+    display: none !important; /* Hides all links containing 'github.com' */
+}
 
-/* Alternatively, to hide just specific links */
-/* Target GitHub repo link and fork link directly by their classes or IDs */
-/* Uncomment and modify the lines below based on the inspection */
-
+/* Optionally, if you want to hide only specific links */
 /* a[href*="github.com/your-repo-name"] {display: none !important;} */
-
 /* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
 
-/* iframe[src*="github.com"] {display: none !important;} */
-
+/* Keep the Streamlit footer visible */
+footer {
+    visibility: visible !important; /* Ensure the footer is visible */
+    display: block !important; /* Ensure the footer is displayed */
+}
 </style>
 """
 
 # Inject the custom CSS into the Streamlit app
-st.markdown(hide_github_style, unsafe_allow_html=True)
+st.markdown(hide_specific_elements_style, unsafe_allow_html=True)
 
 
 
