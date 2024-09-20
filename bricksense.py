@@ -28,7 +28,7 @@ a[href*="github.com"] {display: none !important;} /* Hides any link containing '
 /* Example: .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
 
 /* Keep the Streamlit menu visible */
-#MainMenu {visibility: visible;} /* Ensure the main menu is visible */
+#MainMenu {visibility: hidden;} /* Ensure the main menu is visible */
 
 /* Ensure the footer is visible */
 footer {visibility: visible;} /* This ensures the footer is displayed */
