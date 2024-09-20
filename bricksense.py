@@ -18,22 +18,15 @@ st.set_page_config(
     layout="centered"
 )
 
-hide_streamlit_style = """
+hide_github_link_style = """
 <style>
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-footer:after {
-    content:'Your custom message here';
-    visibility: visible;
-    display: block;
-    position: relative;
-    padding: 5px;
-    top: 2px;
-    color: gray;
-}
+#MainMenu {visibility: hidden;} /* Hides the main menu */
+footer {visibility: hidden;} /* Hides the footer */
+.stGithub {display: none;} /* Hides the GitHub link, use the correct class name here */
 </style>
 """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+st.markdown(hide_github_link_style, unsafe_allow_html=True)
+
 
 # Custom CSS for additional styling
 st.markdown(
