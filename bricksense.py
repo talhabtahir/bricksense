@@ -42,44 +42,6 @@ st.set_page_config(
 
 # # Inject the custom CSS into the Streamlit app
 # st.markdown(hide_github_style, unsafe_allow_html=True)
-import streamlit as st
-
-# Custom CSS to hide only GitHub links and keep the rest visible
-hide_github_links_style = """
-<style>
-/* Target specific GitHub links */
-
-/* If GitHub links have a unique class or attribute, use it */
-a[href*="github.com"] {
-    display: none !important; /* Hides all links containing 'github.com' */
-}
-
-/* If the above is too broad, refine using more specific selectors */
-/* Uncomment and replace with your specific class or ID */
-/* .specific-github-link-class { display: none !important; } */
-
-/* Ensure the Streamlit menu is visible */
-#MainMenu {visibility: visible;}
-
-/* Ensure the footer is visible */
-footer {
-    visibility: visible !important; /* Make sure footer is visible */
-    display: block !important; /* Display footer as block */
-}
-
-/* Remove any hidden attribute on the footer */
-footer * {
-    visibility: visible !important; /* Make sure all child elements are visible */
-}
-</style>
-"""
-
-# Inject the custom CSS into the Streamlit app
-st.markdown(hide_github_links_style, unsafe_allow_html=True)
-
-
-
-
 
 
 # # Helper function to convert image to base64
