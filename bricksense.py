@@ -44,21 +44,21 @@ st.set_page_config(
 # st.markdown(hide_github_style, unsafe_allow_html=True)
 import streamlit as st
 
-# Custom CSS to hide only specific elements but keep the footer visible
-hide_specific_elements_style = """
+# Custom CSS to hide only GitHub links and keep the rest visible
+hide_github_links_style = """
 <style>
-/* Hide specific GitHub links using their class or ID if found */
-/* For example, replace '.specific-class' with the actual class of the link */
-a[href*="github.com"] { 
+/* Target specific GitHub links */
+
+/* If GitHub links have a unique class or attribute, use it */
+a[href*="github.com"] {
     display: none !important; /* Hides all links containing 'github.com' */
 }
 
-/* Optionally, if you have the specific classes or IDs */
-#your-specific-id, .your-specific-class { 
-    display: none !important; /* Hide based on class or ID */
-}
+/* If the above is too broad, refine using more specific selectors */
+/* Uncomment and replace with your specific class or ID */
+/* .specific-github-link-class { display: none !important; } */
 
-/* Keep the Streamlit menu visible */
+/* Ensure the Streamlit menu is visible */
 #MainMenu {visibility: visible;}
 
 /* Ensure the footer is visible */
@@ -67,7 +67,7 @@ footer {
     display: block !important; /* Display footer as block */
 }
 
-/* Remove visibility:hidden if any are applied to the footer */
+/* Remove any hidden attribute on the footer */
 footer * {
     visibility: visible !important; /* Make sure all child elements are visible */
 }
@@ -75,7 +75,8 @@ footer * {
 """
 
 # Inject the custom CSS into the Streamlit app
-st.markdown(hide_specific_elements_style, unsafe_allow_html=True)
+st.markdown(hide_github_links_style, unsafe_allow_html=True)
+
 
 
 
