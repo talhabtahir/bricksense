@@ -43,31 +43,6 @@ header {visibility: hidden;}
 st.markdown(hide_github_style, unsafe_allow_html=True)
 
 
-# CSS to hide Streamlit elements
-hide_elements = """
-<style>
-/* Hide the top-right hamburger menu */
-#MainMenu {visibility: hidden;}
-
-/* Hide the footer */
-footer {visibility: hidden;}
-
-/* Hide GitHub link (find the right class or use a general approach) */
-a[href*="github.com"] {
-    display: none !important;
-}
-
-/* Hide "Fork me on GitHub" ribbon if it exists */
-iframe[title="Fork me on GitHub"] {
-    display: none !important;
-}
-</style>
-"""
-
-# Inject custom CSS
-st.markdown(hide_elements, unsafe_allow_html=True)
-
-
 # # Helper function to convert image to base64
 # def image_to_base64(img):
 #     buffered = io.BytesIO()
