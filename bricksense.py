@@ -18,29 +18,28 @@ st.set_page_config(
     layout="centered"
 )
 
-# CSS to hide Streamlit elements
-hide_elements = """
+# Custom CSS to hide specific Streamlit elements
+hide_github_style = """
 <style>
-/* Hide the top-right hamburger menu */
-#MainMenu {visibility: hidden;}
+/* Hide the top-right menu entirely (including GitHub links) */
+header {visibility: hidden;}
 
-/* Hide the footer */
-footer {visibility: hidden;}
+/* Alternatively, to hide just specific links */
+/* Target GitHub repo link and fork link directly by their classes or IDs */
+/* Uncomment and modify the lines below based on the inspection */
 
-/* Hide GitHub link (find the right class or use a general approach) */
-a[href*="github.com"] {
-    display: none !important;
-}
+/* a[href*="github.com/your-repo-name"] {display: none !important;} */
 
-/* Hide "Fork me on GitHub" ribbon if it exists */
-iframe[title="Fork me on GitHub"] {
-    display: none !important;
-}
+/* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
+
+/* iframe[src*="github.com"] {display: none !important;} */
+
 </style>
 """
 
-# Inject custom CSS
-st.markdown(hide_elements, unsafe_allow_html=True)
+# Inject the custom CSS into the Streamlit app
+st.markdown(hide_github_style, unsafe_allow_html=True)
+
 
 
 
