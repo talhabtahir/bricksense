@@ -18,23 +18,20 @@ st.set_page_config(
     layout="centered"
 )
 
-import streamlit as st
-
-# Custom CSS to hide specific elements but keep the Streamlit menu visible
+# Custom CSS to hide specific elements but keep the Streamlit menu and footer visible
 hide_specific_elements_style = """
 <style>
 /* Hide GitHub repo link and fork link specifically */
 a[href*="github.com"] {display: none !important;} /* Hides any link containing 'github.com' */
 
-/* If there are specific classes or ids for these links, use them instead */
-/* For example: .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
+/* Optional: If you know the specific class or ID of the GitHub link, use it instead */
+/* Example: .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
 
 /* Keep the Streamlit menu visible */
-#MainMenu {visibility: visible;} /* This is usually not necessary as it's visible by default */
+#MainMenu {visibility: visible;} /* Ensure the main menu is visible */
 
-/* Optional: Hide the Streamlit footer */
-footer {visibility: visible;} /* Hides the footer but not the menu */
-
+/* Ensure the footer is visible */
+footer {visibility: visible;} /* This ensures the footer is displayed */
 </style>
 """
 
