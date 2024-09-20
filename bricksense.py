@@ -20,54 +20,28 @@ st.set_page_config(
 
 # import streamlit as st
 
-# # Custom CSS to hide specific Streamlit elements
-# hide_github_style = """
-# <style>
-# /* Hide the top-right menu entirely (including GitHub links) */
-# header {visibility: hidden;}
-
-# /* Alternatively, to hide just specific links */
-# /* Target GitHub repo link and fork link directly by their classes or IDs */
-# /* Uncomment and modify the lines below based on the inspection */
-
-# /* a[href*="github.com/your-repo-name"] {display: none !important;} */
-
-# /* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
-
-# /* iframe[src*="github.com"] {display: none !important;} */
-
-# </style>
-# """
-
-# # Inject the custom CSS into the Streamlit app
-# st.markdown(hide_github_style, unsafe_allow_html=True)
-
-import streamlit as st
-
-# Custom CSS to hide GitHub links only
-hide_specific_elements_style = """
+# Custom CSS to hide specific Streamlit elements
+hide_github_style = """
 <style>
-/* Hide GitHub repo link and fork link specifically */
+/* Hide the top-right menu entirely (including GitHub links) */
+header {visibility: hidden;}
 
-/* General approach to hide any link containing 'github.com' */
-a[href*="github.com"] { 
-    display: none !important; /* Hides links containing 'github.com' in the URL */
-}
+/* Alternatively, to hide just specific links */
+/* Target GitHub repo link and fork link directly by their classes or IDs */
+/* Uncomment and modify the lines below based on the inspection */
 
-/* If the above doesn't work, try using more specific selectors from inspection */
-/* Example for GitHub repo link, replace with actual class or ID if found */
-/* .stApp a[href*="github.com/your-repo"] { display: none !important; } */
+/* a[href*="github.com/your-repo-name"] {display: none !important;} */
 
-/* Keep the Streamlit menu visible */
-#MainMenu {visibility: visible;} /* Menu is visible by default */
+/* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
 
-/* Keep the footer visible */
-footer {visibility: visible;} /* Ensure footer is visible */
+/* iframe[src*="github.com"] {display: none !important;} */
+
 </style>
 """
 
 # Inject the custom CSS into the Streamlit app
-st.markdown(hide_specific_elements_style, unsafe_allow_html=True)
+st.markdown(hide_github_style, unsafe_allow_html=True)
+
 
 
 
