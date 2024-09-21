@@ -550,7 +550,7 @@ else:
 footer_style = """
     <style>
     .footer {
-        position: static;
+        position: fixed;
         left: 0;
         bottom: 0;
         width: 100%;
