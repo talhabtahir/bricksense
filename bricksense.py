@@ -547,9 +547,32 @@ else:
 # Footer
 # st.markdown("<div class='footer'>Developed with Streamlit & TensorFlow | © 2024 BrickSense</div>", unsafe_allow_html=True)
 
-footer_style = """
-    <style>
-    .footer {
+# footer_style = """
+#     <style>
+#     .footer {
+#         position: fixed;
+#         left: 0;
+#         bottom: 0;
+#         width: 100%;
+#         background-color: white;
+#         color: gray;
+#         text-align: center;
+#         font-size: small;
+#         padding: 10px;
+#     }
+#     </style>
+#     <div class='footer'>
+#         Developed with Streamlit & TensorFlow | © 2024 BrickSense
+#     </div>
+# """
+
+# st.markdown(footer_style, unsafe_allow_html=True)
+
+import streamlit as st
+
+st.markdown(
+    """
+    <div style="
         position: fixed;
         left: 0;
         bottom: 0;
@@ -559,12 +582,10 @@ footer_style = """
         text-align: center;
         font-size: small;
         padding: 10px;
-    }
-    </style>
-    <div class='footer'>
+    ">
         Developed with Streamlit & TensorFlow | © 2024 BrickSense
     </div>
-"""
-
-st.markdown(footer_style, unsafe_allow_html=True)
+    """,
+    unsafe_allow_html=True
+)
 
