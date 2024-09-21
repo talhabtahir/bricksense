@@ -19,7 +19,7 @@ st.set_page_config(
     menu_items={
         'Get Help': 'https://example.com/help',
         'Report a bug': 'https://example.com/bug',
-        'About': 'Developed by BrickSense Team | © 2024'
+        'About': 'Developed by BrickSense Team | © 2024'}
 )
 
 # # Custom CSS to hide specific Streamlit elements
