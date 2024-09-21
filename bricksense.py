@@ -16,33 +16,31 @@ st.set_page_config(
     page_title="Brick Detection",
     page_icon="static/brickicon8.png",  # Path to your favicon file
     layout="centered",
-    # hide_github_button=True
+    hide_github_button=True
 )
 
-# import streamlit as st
+# # Custom CSS to hide specific Streamlit elements
+# hide_github_style = """
+# <style>
+# /* Hide the top-right menu entirely (including GitHub links) */
+# header {visibility: hidden;}
+# footer {visibility: visible;}
 
-# Custom CSS to hide specific Streamlit elements
-hide_github_style = """
-<style>
-/* Hide the top-right menu entirely (including GitHub links) */
-header {visibility: hidden;}
-footer {visibility: visible;}
+# /* Alternatively, to hide just specific links */
+# /* Target GitHub repo link and fork link directly by their classes or IDs */
+# /* Uncomment and modify the lines below based on the inspection */
 
-/* Alternatively, to hide just specific links */
-/* Target GitHub repo link and fork link directly by their classes or IDs */
-/* Uncomment and modify the lines below based on the inspection */
+# /* a[href*="github.com/your-repo-name"] {display: none !important;} */
 
-/* a[href*="github.com/your-repo-name"] {display: none !important;} */
+# /* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
 
-/* .css-1q1n0ol a[aria-label="View source"] {display: none !important;} */
+# /* iframe[src*="github.com"] {display: none !important;} */
 
-/* iframe[src*="github.com"] {display: none !important;} */
+# </style>
+# """
 
-</style>
-"""
-
-# Inject the custom CSS into the Streamlit app
-st.markdown(hide_github_style, unsafe_allow_html=True)
+# # Inject the custom CSS into the Streamlit app
+# st.markdown(hide_github_style, unsafe_allow_html=True)
 
 
 # # Helper function to convert image to base64
