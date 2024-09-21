@@ -21,7 +21,7 @@ st.set_page_config(
 
 # import streamlit as st
 
-Custom CSS to hide specific Streamlit elements
+# Custom CSS to hide specific Streamlit elements
 hide_github_style = """
 <style>
 /* Hide the top-right menu entirely (including GitHub links) */
