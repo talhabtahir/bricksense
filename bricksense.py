@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 st.set_page_config(
     page_title="Brick Detection",
     page_icon="static/brickicon8.png",  # Path to your favicon file
-    layout="centered"
+    layout="centered",
+    hide_github_button=True
 )
 
 # import streamlit as st
