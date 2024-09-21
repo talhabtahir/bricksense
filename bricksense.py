@@ -25,7 +25,7 @@ st.set_page_config(
 hide_github_style = """
 <style>
 /* Hide the top-right menu entirely (including GitHub links) */
-header {visibility: visible;}
+header {visibility: hidden;}
 footer {visibility: visible;}
 
 /* Alternatively, to hide just specific links */
