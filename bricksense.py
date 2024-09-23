@@ -147,7 +147,7 @@ def add_canvas(image, fill_color=(255, 255, 255)):
 
 
 # Function to localize the crack and to make predictions using the TensorFlow model
-def import_and_predict(image_data, sensitivity=10):
+def import_and_predict(image_data, sensitivity=9):
     try:
         # Convert image to numpy array
         original_img = np.array(image_data)
@@ -296,8 +296,8 @@ else:
                     sensitivity = st.slider(
                         "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
                         min_value=1,   # Minimum value for sensitivity
-                        max_value=12,   # Maximum value for sensitivity
-                        value=10,       # Default value for sensitivity
+                        max_value=11,   # Maximum value for sensitivity
+                        value=9,       # Default value for sensitivity
                         step=1,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
