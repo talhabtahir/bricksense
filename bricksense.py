@@ -80,16 +80,37 @@ st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 
+#Model selection Toolbar
+st.sidebar.markdown("### Model Selection")
+model_option = st.sidebar.selectbox(
+    "Select the model to use:",
+    ("230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1")
+)
+
 @st.cache_resource
-def load_model():
+# For model comparison with sidebar selection
+def load_model(model_name):
     try:
-        model = tf.keras.models.load_model('230kmodelv11_version_cam_2.keras')
+        model = tf.keras.models.load_model(f'{model_name}.keras')
         return model
     except Exception as e:
-        st.error(f"Failed to load model: {e}")
+        st.error(f"Failed to load {model_name}: {e}")
         return None
 
-model = load_model()
+# Load the selected model
+model = load_model(model_option)
+''' ______________________________________________________________________________________________'''
+# #For single model selection
+# def load_model():
+#     try:
+#         model = tf.keras.models.load_model('230kmodelv11_version_cam_2.keras')
+#         return model
+#     except Exception as e:
+#         st.error(f"Failed to load model: {e}")
+#         return None
+
+# model = load_model()
+''' ______________________________________________________________________________________________'''
 
 # Sidebar for app information
 st.sidebar.header("About This App")
