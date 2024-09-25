@@ -74,22 +74,6 @@ st.write("")  # Creates a blank line
 # st.write(" ")  # Creates an extra line for more space
 # st.write(" ")  # Adjust the number of empty lines for desired spacing
 
-# Custom CSS to adjust the width of the selectbox
-st.markdown("""
-    <style>
-    .stSelectbox > div:first-child {
-        width: 100px !important;  /* Adjust this value to change the width */
-    }
-    </style>
-    """, unsafe_allow_html=True)
-# Add a dropdown for model selection
-model_option = st.selectbox(    
-    "Choose a model for prediction:",
-    ("230kmodelv12_version_cam_2" ,"230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "170kmodelv3_version_cam_1")
-)
-
-# Show selected model below the logo
-# st.write(f"Selected Model: {model_option}")
 
 # Sidebar navigation with icons
 st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
@@ -97,36 +81,18 @@ st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 
-# #Model selection Toolbar
-# st.sidebar.markdown("### Model Selection")
-# model_option = st.sidebar.selectbox(
-#     "Select the model to use:",
-#     ("230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "170kmodelv3_version_cam_1")
-# )
-
 @st.cache_resource
-# For model comparison with sidebar selection
-def load_model(model_name):
+#__________________________________________________________________________________________________________________________________________________________________________________
+#For single model selection
+def load_model():
     try:
-        model = tf.keras.models.load_model(f'{model_name}.keras')
+        model = tf.keras.models.load_model('230kmodelv12_version_cam_2.keras')
         return model
     except Exception as e:
-        st.error(f"Failed to load {model_name}: {e}")
+        st.error(f"Failed to load model: {e}")
         return None
 
-# Load the selected model
-model = load_model(model_option)
-#__________________________________________________________________________________________________________________________________________________________________________________
-# #For single model selection
-# def load_model():
-#     try:
-#         model = tf.keras.models.load_model('230kmodelv11_version_cam_2.keras')
-#         return model
-#     except Exception as e:
-#         st.error(f"Failed to load model: {e}")
-#         return None
-
-# model = load_model()
+model = load_model()
 #__________________________________________________________________________________________________________________________________________________________________________________
 
 # Sidebar for app information
@@ -338,9 +304,7 @@ else:
                         step=1,        # Step for incremental changes
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
-                #layer name
-                st.write(f"Layer Name: ",model.layers[sensitivity].name)
-                st.write(f"Layer Shape: ",model.layers[sensitivity].output.shape)
+
 
                 # Perform prediction again
                 predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
