@@ -101,7 +101,7 @@ st.sidebar.markdown("### ")
 # st.sidebar.markdown("### Model Selection")
 # model_option = st.sidebar.selectbox(
 #     "Select the model to use:",
-#     ("230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1")
+#     ("230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1", "170kmodelv3_version_cam_1")
 # )
 
 @st.cache_resource
