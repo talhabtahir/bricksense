@@ -71,8 +71,8 @@ st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your
 
 # Add space below the logo
 st.write("")  # Creates a blank line
-st.write(" ")  # Creates an extra line for more space
-st.write(" ")  # Adjust the number of empty lines for desired spacing
+# st.write(" ")  # Creates an extra line for more space
+# st.write(" ")  # Adjust the number of empty lines for desired spacing
 
 # Sidebar navigation with icons
 st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
