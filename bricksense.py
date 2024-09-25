@@ -340,7 +340,7 @@ else:
                                             )
                 #layer name
                 st.write(f"Layer Name: ",model.layers[sensitivity].name)
-                st.write(f"Layer Shape: ",model.layers[sensitivity].shape)
+                st.write(f"Layer Shape: ",model.layers[sensitivity].output.shape)
 
                 # Perform prediction again
                 predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
