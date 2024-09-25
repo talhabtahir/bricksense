@@ -74,20 +74,21 @@ st.write("")  # Creates a blank line
 # st.write(" ")  # Creates an extra line for more space
 # st.write(" ")  # Adjust the number of empty lines for desired spacing
 
-# Custom CSS to adjust the width of the selectbox
-st.markdown("""
-    <style>
-    .stSelectbox > div:first-child {
-        width: 150px !important;  /* Adjust this value to change the width */
-    }
-    </style>
-    """, unsafe_allow_html=True)
+
 
 # Add a dropdown for model selection
 model_option = st.selectbox(    
     "Choose a model for prediction:",
     ("230kmodelv11_version_cam_2", "170kmodelv10_version_cam_1")
 )
+# Custom CSS to adjust the width of the selectbox
+st.markdown("""
+    <style>
+    .stSelectbox > div:first-child {
+        width: 100px !important;  /* Adjust this value to change the width */
+    }
+    </style>
+    """, unsafe_allow_html=True)
 # Show selected model below the logo
 # st.write(f"Selected Model: {model_option}")
 
