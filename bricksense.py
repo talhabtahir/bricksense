@@ -339,7 +339,7 @@ else:
                         format="%.1f"    # Format to display sensitivity with one decimal
                                             )
                 #layer name
-                st.write(model.layers[sensitivity])
+                st.write(f"Layer Name: ",model.layers[sensitivity].name)
 
                 # Perform prediction again
                 predictions, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img  = import_and_predict(image, sensitivity=sensitivity)
