@@ -155,6 +155,10 @@ def import_and_predict(image_data, sensitivity=9):
     try:
         # Convert image to numpy array
         original_img = np.array(image_data)
+
+        # Convert image to RGB if it has an alpha channel
+        if original_img.shape[-1] == 4:  # Check if the image has 4 channels
+            original_img = cv2.cvtColor(original_img, cv2.COLOR_RGBA2RGB)
         
         # Save original dimensions
         orig_height, orig_width, _ = original_img.shape
