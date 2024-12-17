@@ -53,7 +53,7 @@ st.set_page_config(
 #     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
 imagelogo = Image.open("static/sidelogo.png")
-st.image(imagelogo, use_column_width=True, width=150)  # Update the path to your logo file
+st.image(imagelogo, use_container_width=True, width=150)  # Update the path to your logo file
 # # Use the helper function to encode the image
 # encoded_logo = image_to_base64(imagelogo)
 
@@ -76,7 +76,7 @@ st.write("")  # Creates a blank line
 
 
 # Sidebar navigation with icons
-st.sidebar.image("static/sidelogo.png", width=200, use_column_width=True)
+st.sidebar.image("static/sidelogo.png", width=200, use_container_width=True)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
@@ -317,31 +317,31 @@ else:
                 col1, col2, col3, col4 = st.columns(4)
                 
                 with col1:
-                    st.image(image, caption="Uploaded Image", use_column_width=True)
+                    st.image(image, caption="Uploaded Image", use_container_width=True)
                 
                 with col2:
                     if predicted_class == 1:
-                        st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
+                        st.image(contoured_image, caption="Crack(s) Location", use_container_width=True)
                     elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
+                        st.image(image, caption="No cracks detected", use_container_width=True)
                     else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
+                        st.image(image, caption="No wall detected", use_container_width=True)
                         
                 with col3:
                     if predicted_class == 1:
-                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
+                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_container_width=True)
                     elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
+                        st.image(image, caption="No cracks detected", use_container_width=True)
                     else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
+                        st.image(image, caption="No wall detected", use_container_width=True)
                 
                 with col4:
                     if predicted_class == 1:
-                        st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
+                        st.image(overlay_img, caption="Crack(s) Localization", use_container_width=True)
                     elif predicted_class == 0:
-                        st.image(image, caption="No cracks detected", use_column_width=True)
+                        st.image(image, caption="No cracks detected", use_container_width=True)
                     else:
-                        st.image(image, caption="No wall detected", use_column_width=True)
+                        st.image(image, caption="No wall detected", use_container_width=True)
                 
                 
                 # #In two rows
@@ -349,34 +349,34 @@ else:
                 # col1, col2 = st.columns(2)
                 
                 # with col1:
-                #     st.image(image, caption="Uploaded Image", use_column_width=True)
+                #     st.image(image, caption="Uploaded Image", use_container_width=True)
                 
                 # with col2:
                 #     if predicted_class == 1:
-                #         st.image(contoured_image, caption="Crack(s) Location", use_column_width=True)
+                #         st.image(contoured_image, caption="Crack(s) Location", use_container_width=True)
                 #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
+                #         st.image(image, caption="No cracks detected", use_container_width=True)
                 #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
+                #         st.image(image, caption="No wall detected", use_container_width=True)
                 
                 # # Second row with two columns
                 # col3, col4 = st.columns(2)
                 
                 # with col3:
                 #     if predicted_class == 1:
-                #         st.image(heatmap_image, caption="Crack(s) Heatmap", use_column_width=True)
+                #         st.image(heatmap_image, caption="Crack(s) Heatmap", use_container_width=True)
                 #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
+                #         st.image(image, caption="No cracks detected", use_container_width=True)
                 #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
+                #         st.image(image, caption="No wall detected", use_container_width=True)
                 
                 # with col4:
                 #     if predicted_class == 1:
-                #         st.image(overlay_img, caption="Crack(s) Localization", use_column_width=True)
+                #         st.image(overlay_img, caption="Crack(s) Localization", use_container_width=True)
                 #     elif predicted_class == 0:
-                #         st.image(image, caption="No cracks detected", use_column_width=True)
+                #         st.image(image, caption="No cracks detected", use_container_width=True)
                 #     else:
-                #         st.image(image, caption="No wall detected", use_column_width=True)
+                #         st.image(image, caption="No wall detected", use_container_width=True)
 
 
 
