@@ -77,14 +77,10 @@ st.write("")  # Creates a blank line
 
 # Sidebar navigation with icons
 # st.sidebar.image("static/BScirclehightran1.png", width=150, use_container_width=False)
-st.sidebar.markdown(
-    f"""
-    <div style="display: flex; justify-content: center; align-items: center;">
-        <img src="static/BScirclehightran1.png" width="150" style="max-width: 100%;">
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+with st.sidebar:
+    col1, col2, col3 = st.columns([1, 2, 1])  # Adjust column proportions as needed
+    with col2:
+        st.image("static/BScirclehightran1.png", width=150, use_container_width=False)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
