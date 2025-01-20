@@ -52,7 +52,7 @@ st.set_page_config(
 #     img.save(buffered, format="PNG")
 #     return base64.b64encode(buffered.getvalue()).decode()
 # Display logo instead of header
-imagelogo = Image.open("static/BScirclehightran1.png")
+imagelogo = Image.open("static/BSbasicboxhightran1.png")
 st.image(imagelogo, use_container_width=True, width=150)  # Update the path to your logo file
 # # Use the helper function to encode the image
 # encoded_logo = image_to_base64(imagelogo)
@@ -76,7 +76,7 @@ st.write("")  # Creates a blank line
 
 
 # Sidebar navigation with icons
-st.sidebar.image("static/BSbasicboxhightran1.png", width=200, use_container_width=True)
+st.sidebar.image("static/BScirclehightran1.png", width=200, use_container_width=True)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
