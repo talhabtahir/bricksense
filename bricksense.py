@@ -83,7 +83,7 @@ with st.sidebar:
         st.image("static/BScirclehightran1.png", width=200, use_container_width=False)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
-st.sidebar.markdown("### ")
+# st.sidebar.markdown("### ")
 
 @st.cache_resource
 #__________________________________________________________________________________________________________________________________________________________________________________
