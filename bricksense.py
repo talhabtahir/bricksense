@@ -76,7 +76,7 @@ st.write("")  # Creates a blank line
 
 
 # Sidebar navigation with icons
-st.sidebar.image("static/BScirclehightran1.png", width=100, use_container_width=True)
+st.sidebar.image("static/BScirclehightran1.png", width=100, use_container_width=False)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
