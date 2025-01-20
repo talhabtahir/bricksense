@@ -80,7 +80,7 @@ st.write("")  # Creates a blank line
 with st.sidebar:
     col1, col2, col3 = st.columns([1, 2, 1])  # Adjust column proportions as needed
     with col2:
-        st.image("static/BScirclehightran1.png", width=150, use_container_width=False)
+        st.image("static/BScirclehightran1.png", width=200, use_container_width=False)
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
 st.sidebar.markdown("### ")
