@@ -58,7 +58,8 @@ def load_models():
     strength_interpreter = load_tflite_model('brick_FlexureStrength_Reg_model_epoch50.tflite')
     # class_interpreter = load_tflite_model('brick_classification_model.tflite')
     class_interpreter = load_tflite_model('brick_classification_model trial 2.tflite')
-    return strength_interpreter, class_interpreter
+    absorption_interpreter = load_tflite_model('brick_absorption_Model.tflite')
+    return strength_interpreter, class_interpreter, absorption_interpreter
 def correct_orientation(image):
     try:
         for orientation in ExifTags.TAGS.keys():
@@ -76,7 +77,7 @@ def correct_orientation(image):
     except (AttributeError, KeyError, IndexError):
         pass
     return image
-strength_model, class_model = load_models()
+strength_model, class_model, absorption_model = load_models()
 
 file = st.file_uploader("Upload an image of the individual brick", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
 dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=1500.0, max_value=3500.0, step=1.0)
@@ -119,12 +120,26 @@ if file:
             strength_pred = run_tflite_inference(strength_model, [img_tensor, tabular_input])
             strength_norm = float(strength_pred[0][0])
             strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
+            # --- Absorption Prediction (Real Output) ---
+            try:
+                # Prepare inputs: image, dry weight (in grams), class label (1–3)
+                class_input = np.array([[class_label + 1]], dtype=np.float32)  # convert 0/1/2 → 1/2/3
+                dry_weight_input = np.array([[dry_weight_grams]], dtype=np.float32)
+            
+                # Run inference
+                absorption_pred = run_tflite_inference(absorption_model, [img_tensor, dry_weight_input, class_input])
+                absorption_real = float(absorption_pred[0][0])  # already real-world %
+            
+                
+            
+            except Exception as e:
+                st.error(f"Error in absorption prediction: {e}")
 
             st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
 
             # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
             st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
-
+            st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
         st.subheader("📊 Classification Probabilities")
         st.write("""
         - **1st Class Brick:** {:.2f}%
