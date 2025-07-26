@@ -79,7 +79,7 @@ def correct_orientation(image):
 strength_model, class_model = load_models()
 
 file = st.file_uploader("Upload an image of the individual brick", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
-dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=100.0, max_value=5000.0, step=1.0)
+dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=1500.0, max_value=3500.0, step=1.0)
 
 # Normalize dry weight
 min_val= 2610 # typical min dry weight in grams
