@@ -33,7 +33,7 @@ Predict flexural strength of individual bricks
 Talha Bin Tahir  
 **Email:** talhabtahir@gmail.com""")
 
-st.header("🤪 Predict Flexural Strength of Brick")
+# st.header("🤪 Predict Flexural Strength of Brick")
 
 # Helper to load and run TFLite model
 def load_tflite_model(path):
