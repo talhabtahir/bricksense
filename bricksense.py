@@ -70,8 +70,8 @@ max_val= 3144 # typical max dry weight in grams
 dry_weight = dry_weight_grams / (max_val-min_val)
 
 # Define denormalization range
-MIN_KN = 2.0
-MAX_KN = 14.0
+MIN_KN = 2.13
+MAX_KN = 12.48
 
 if file:
     try:
