@@ -83,6 +83,10 @@ if file:
         class_pred = run_tflite_inference(class_model, [img_tensor])
         class_label = np.argmax(class_pred[0])
 
+        st.subheader("🧪 Debug Info")
+        st.write("🔢 Raw classification prediction vector:", class_pred)
+        st.write("🔍 Predicted class index (argmax):", class_label)
+
         if class_label == 3:
             st.image(image, caption="Uploaded Image")
             st.error("🚫 This is not a brick. Please upload a valid brick image.")
