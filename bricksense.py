@@ -65,8 +65,8 @@ file = st.file_uploader("Upload an image of the individual brick", type=("jpg", 
 dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=100.0, max_value=5000.0, step=1.0)
 
 # Normalize dry weight
-min_val= 1500 # typical min dry weight in grams
-max_val= 2500 # typical max dry weight in grams
+min_val= 2610 # typical min dry weight in grams
+max_val= 3144 # typical max dry weight in grams
 dry_weight = dry_weight_grams / (max_val-min_val)
 
 # Define denormalization range
