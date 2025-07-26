@@ -122,15 +122,20 @@ if file:
             strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
             # --- Absorption Prediction (Real Output) ---
             try:
-                # Prepare inputs: image, dry weight (in grams), class label (1–3)
-                class_input = np.array([[class_label + 1]], dtype=np.float32)  # convert 0/1/2 → 1/2/3
-                dry_weight_input = np.array([[dry_weight_grams]], dtype=np.float32)
+                # Ensure correct shape (1, 1) for scalar inputs
+                class_input = np.array([[class_label + 1]], dtype=np.float32)  # shape (1, 1)
+                dry_weight_input = np.array([[dry_weight_grams]], dtype=np.float32)  # shape (1, 1)
+            
+                # Check image shape (should already be (1, 224, 224, 3))
+                st.write(f"Image tensor shape: {img_tensor.shape}")
+                st.write(f"Weight tensor shape: {dry_weight_input.shape}")
+                st.write(f"Label tensor shape: {class_input.shape}")
             
                 # Run inference
                 absorption_pred = run_tflite_inference(absorption_model, [img_tensor, dry_weight_input, class_input])
                 absorption_real = float(absorption_pred[0][0])  # already real-world %
             
-                
+                st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
             
             except Exception as e:
                 st.error(f"Error in absorption prediction: {e}")
@@ -139,7 +144,7 @@ if file:
 
             # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
             st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
-            st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
+            # st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
         st.subheader("📊 Classification Probabilities")
         st.write("""
         - **1st Class Brick:** {:.2f}%
