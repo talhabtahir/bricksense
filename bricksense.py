@@ -59,7 +59,23 @@ def load_models():
     # class_interpreter = load_tflite_model('brick_classification_model.tflite')
     class_interpreter = load_tflite_model('brick_classification_model trial 2.tflite')
     return strength_interpreter, class_interpreter
-
+def correct_orientation(image):
+    try:
+        for orientation in ExifTags.TAGS.keys():
+            if ExifTags.TAGS[orientation] == 'Orientation':
+                break
+        exif = image._getexif()
+        if exif is not None:
+            orientation = exif.get(orientation, 1)
+            if orientation == 3:
+                image = image.rotate(180, expand=True)
+            elif orientation == 6:
+                image = image.rotate(270, expand=True)
+            elif orientation == 8:
+                image = image.rotate(90, expand=True)
+    except (AttributeError, KeyError, IndexError):
+        pass
+    return image
 strength_model, class_model = load_models()
 
 file = st.file_uploader("Upload an image of the individual brick", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
@@ -77,6 +93,7 @@ MAX_KN = 12.48
 if file:
     try:
           # Read and convert image to BGR (to match training setup)
+        image = correct_orientation(file) # correction of orientation for images in taken from mobile
         image = Image.open(file).convert('RGB')  # PIL loads as RGB
         image_np = np.array(image)
         image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)  # Convert to BGR
