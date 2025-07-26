@@ -68,7 +68,7 @@ dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_
 # Normalize dry weight
 min_val= 2610 # typical min dry weight in grams
 max_val= 3144 # typical max dry weight in grams
-dry_weight = dry_weight_grams / (max_val-min_val)
+dry_weight = (dry_weight_grams-min_val) / (max_val-min_val)
 
 # Define denormalization range
 MIN_KN = 2.13
@@ -104,9 +104,9 @@ if file:
             strength_norm = float(strength_pred[0][0])
             strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
 
-            st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
+            # st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
 
-            st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
+            # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
             st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
 
         st.subheader("📊 Classification Probabilities")
