@@ -94,7 +94,6 @@ MAX_KN = 12.48
 if file:
     try:
           # Read and convert image to BGR (to match training setup)
-        image = correct_orientation(file) # correction of orientation for images in taken from mobile
         image = Image.open(file).convert('RGB')  # PIL loads as RGB
         image_np = np.array(image)
         image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)  # Convert to BGR
@@ -107,7 +106,7 @@ if file:
         # st.subheader("🧪 Debug Info")
         # st.write("🔢 Raw classification prediction vector:", class_pred)
         # st.write("🔍 Predicted class index (argmax):", class_label)
-
+        image = correct_orientation(file) # correction of orientation for images in taken from mobile
         if class_label == 3:
             st.image(image, caption="Uploaded Image")
             st.error("🚫 This is not a brick. Please upload a valid brick image.")
