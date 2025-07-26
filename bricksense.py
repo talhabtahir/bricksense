@@ -86,9 +86,9 @@ if file:
         class_pred = run_tflite_inference(class_model, [img_tensor])
         class_label = np.argmax(class_pred[0])
 
-        st.subheader("🧪 Debug Info")
-        st.write("🔢 Raw classification prediction vector:", class_pred)
-        st.write("🔍 Predicted class index (argmax):", class_label)
+        # st.subheader("🧪 Debug Info")
+        # st.write("🔢 Raw classification prediction vector:", class_pred)
+        # st.write("🔍 Predicted class index (argmax):", class_label)
 
         if class_label == 3:
             st.image(image, caption="Uploaded Image")
@@ -104,7 +104,7 @@ if file:
             strength_norm = float(strength_pred[0][0])
             strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
 
-            # st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
+            st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
 
             # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
             st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
