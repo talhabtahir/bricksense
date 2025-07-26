@@ -29,8 +29,7 @@ st.sidebar.header("About This App")
 st.sidebar.write("""This app uses AI models to Predict flexural strength of individual bricks
 
 **Developed by:**  
-Group 24 Batch 213 
-Talha Bin Tahir
+Group 24   Group 25   Talha Bin Tahir   
 **Email:** talhabtahir@gmail.com""")
 
 # st.header("🤪 Predict Flexural Strength of Brick")
@@ -129,9 +128,7 @@ if file:
                 # Run inference
                 absorption_pred = run_tflite_inference(absorption_model, [img_tensor, tabular_input])
                 absorption_real = float(absorption_pred[0][0])  # already in %
-            
-                st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
-            
+                        
             except Exception as e:
                 st.error(f"Error in absorption prediction: {e}")
 
@@ -139,7 +136,7 @@ if file:
 
             # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
             st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
-            st.success(f"💧 Estimated Absorption: **{absorption_real * 100:.2f}%**")
+            st.success(f"💧 Estimated Absorption: **{absorption_real :.2f}%**")
         st.subheader("📊 Classification Probabilities")
         st.write("""
         - **1st Class Brick:** {:.2f}%
