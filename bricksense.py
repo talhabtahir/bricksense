@@ -65,8 +65,9 @@ file = st.file_uploader("Upload an image of the individual brick", type=("jpg", 
 dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=100.0, max_value=5000.0, step=1.0)
 
 # Normalize dry weight
-NORMALIZATION_BASE = 2100.0  # typical average dry weight in grams
-dry_weight = dry_weight_grams / NORMALIZATION_BASE
+min_val= 1500 # typical min dry weight in grams
+max_val= 2500 # typical max dry weight in grams
+dry_weight = dry_weight_grams / (max_val-min_val)
 
 # Define denormalization range
 MIN_KN = 2.0
@@ -82,27 +83,32 @@ if file:
         class_pred = run_tflite_inference(class_model, [img_tensor])
         class_label = np.argmax(class_pred[0])
 
-        label_1 = 1 if class_label == 0 else 0
-        label_2 = 1 if class_label == 1 else 0
-        label_3 = 1 if class_label == 2 else 0
+        if class_label == 3:
+            st.image(image, caption="Uploaded Image")
+            st.error("🚫 This is not a brick. Please upload a valid brick image.")
+        else:
+            label_1 = 1 if class_label == 0 else 0
+            label_2 = 1 if class_label == 1 else 0
+            label_3 = 1 if class_label == 2 else 0
 
-        tabular_input = np.array([[label_1, label_2, label_3, dry_weight]], dtype=np.float32)
+            tabular_input = np.array([[label_1, label_2, label_3, dry_weight]], dtype=np.float32)
 
-        strength_pred = run_tflite_inference(strength_model, [img_tensor, tabular_input])
-        strength_norm = float(strength_pred[0][0])
-        strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
+            strength_pred = run_tflite_inference(strength_model, [img_tensor, tabular_input])
+            strength_norm = float(strength_pred[0][0])
+            strength_denorm = strength_norm * (MAX_KN - MIN_KN) + MIN_KN
 
-        st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
+            st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
 
-        st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
-        st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
+            st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
+            st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
 
         st.subheader("📊 Classification Probabilities")
         st.write("""
         - **1st Class Brick:** {:.2f}%
         - **2nd Class Brick:** {:.2f}%
         - **3rd Class Brick:** {:.2f}%
-        """.format(class_pred[0][0] * 100, class_pred[0][1] * 100, class_pred[0][2] * 100))
+        - **Not a Brick:** {:.2f}%
+        """.format(class_pred[0][0] * 100, class_pred[0][1] * 100, class_pred[0][2] * 100, class_pred[0][3] * 100))
 
     except Exception as e:
         st.error(f"Error processing image: {e}")
