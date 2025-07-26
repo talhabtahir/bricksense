@@ -1,6 +1,6 @@
 import streamlit as st
 import tensorflow as tf
-from PIL import Image, ImageOps
+from PIL import Image, ImageOps, ExifTags, ImageEnhance
 import numpy as np
 import cv2
 import math
