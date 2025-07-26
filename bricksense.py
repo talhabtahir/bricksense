@@ -1,11 +1,11 @@
-# import streamlit as st
-# import tensorflow as tf
-# from PIL import Image, ImageOps
-# import numpy as np
-# import cv2
-# import math
-# import matplotlib.cm as cm
-# from streamlit_image_comparison import image_comparison
+import streamlit as st
+import tensorflow as tf
+from PIL import Image, ImageOps
+import numpy as np
+import cv2
+import math
+import matplotlib.cm as cm
+from streamlit_image_comparison import image_comparison
 
 # st.set_page_config(
 #     page_title="Brick Analyzer",
