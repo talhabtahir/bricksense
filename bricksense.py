@@ -56,7 +56,8 @@ def run_tflite_inference(interpreter, inputs):
 @st.cache_resource
 def load_models():
     strength_interpreter = load_tflite_model('brick_FlexureStrength_Reg_model_epoch50.tflite')
-    class_interpreter = load_tflite_model('brick_classification_model.tflite')
+    # class_interpreter = load_tflite_model('brick_classification_model.tflite')
+    class_interpreter = load_tflite_model('brick_classification_model trial 2.tflite')
     return strength_interpreter, class_interpreter
 
 strength_model, class_model = load_models()
