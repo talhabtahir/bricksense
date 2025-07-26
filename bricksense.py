@@ -62,7 +62,11 @@ def load_models():
 strength_model, class_model = load_models()
 
 file = st.file_uploader("Upload an image of the individual brick", type=("jpg", "png", "jpeg", "bmp", "tiff", "webp"))
-dry_weight = st.number_input("Enter standardized dry weight of brick (0-1):", min_value=0.0, max_value=1.0, step=0.01)
+dry_weight_grams = st.number_input("Enter dry weight of brick (in grams):", min_value=100.0, max_value=5000.0, step=1.0)
+
+# Normalize dry weight
+NORMALIZATION_BASE = 2100.0  # typical average dry weight in grams
+dry_weight = dry_weight_grams / NORMALIZATION_BASE
 
 # Define denormalization range
 MIN_KN = 2.0
