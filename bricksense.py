@@ -26,10 +26,10 @@ with st.sidebar:
         st.image("static/BScirclehightran1.png", width=200)
 
 st.sidebar.header("About This App")
-st.sidebar.write("""This app uses AI models to Predict flexural strength of individual bricks
+st.sidebar.write("""This app uses AI models to predict flexural load and absorption of individual bricks
 
-**Developed by:**  
-Group 24 \n\n Group 25 \n\n  Talha Bin Tahir \n\n
+**Developed by:** \n
+Group 24 (Batch 213) \n\n Group 25 (Batch 203) \n\n  Talha Bin Tahir \n\n
 **Email:** talhabtahir@gmail.com""")
 
 # st.header("🤪 Predict Flexural Strength of Brick")
