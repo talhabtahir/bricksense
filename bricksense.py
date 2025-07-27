@@ -29,7 +29,7 @@ st.sidebar.header("About This App")
 st.sidebar.write("""This app uses AI models to Predict flexural strength of individual bricks
 
 **Developed by:**  
-Group 24   Group 25   Talha Bin Tahir   
+Group 24 \n  Group 25 \n  Talha Bin Tahir   \n
 **Email:** talhabtahir@gmail.com""")
 
 # st.header("🤪 Predict Flexural Strength of Brick")
