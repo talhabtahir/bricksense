@@ -24,8 +24,10 @@ with st.sidebar:
 st.sidebar.header("About This App")
 st.sidebar.write("""This app uses AI models to predict brick strength & absorption or detect cracks in brick walls.
 
-**Developed by:**  
-Talha Bin Tahir  
+**Developed by:**\n
+Group 24 (batch 213)\n
+Group 25 (Batch 203)\n
+Talha Bin Tahir\n
 **Email:** talhabtahir@gmail.com
 """)
 
@@ -39,13 +41,13 @@ if app_mode == "Predict Brick Properties":
     # import bricksense_strength_absorption
     # OR paste its full code inline here
     # For now, placeholder:
-    exec(open("bricksense_strength_absorption.py").read())
+    exec(open("app1.py").read())
 
 # App 2: Brick Wall Crack Detection
 elif app_mode == "Detect Brick Wall Cracks":
     # Paste full App 2 code below (with sensitivity, contour, overlay, slider etc.)
     # For now, placeholder:
-    exec(open("bricksense_OG.py").read())
+    exec(open("app2.py").read())
 
 # Common Footer
 st.markdown("""
