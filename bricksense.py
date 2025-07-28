@@ -8,7 +8,7 @@ import matplotlib.cm as cm
 from streamlit_image_comparison import image_comparison
 
 st.set_page_config(
-    page_title="Brick Analyzer",
+    page_title="Brick Sense",
     page_icon="static/brickicon8.png",
     layout="centered",
     menu_items={
