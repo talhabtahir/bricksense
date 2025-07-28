@@ -41,11 +41,11 @@ app_mode = st.radio("Select Task", ["Predict Brick Properties", "Detect Brick Wa
 
 if app_mode == "Predict Brick Properties":
     # Insert App 1 code here (everything from App 1 except `st.set_page_config` and sidebar/header)
-    import app1  # Replace with actual inline code if preferred
+    import bricksense_strength_absorption  # Replace with actual inline code if preferred
 
 elif app_mode == "Detect Brick Wall Cracks":
     # Insert full-featured crack detection code from new version (the upgraded App 2)
-    import app2  # Replace with actual inline code if preferred
+    import bricksense_OG  # Replace with actual inline code if preferred
 
 # Footer
 st.markdown("""
