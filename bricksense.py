@@ -21,7 +21,9 @@ with st.sidebar:
         st.image("static/BScirclehightran1.png", width=200)
 
 st.sidebar.header("About This App")
-st.sidebar.write("""This app uses AI models to predict brick strength & absorption or detect cracks in brick walls.
+st.sidebar.write("""This app uses AI models for two purposes:\n
+1. **Predict Flexural Strength and Absorption** of individual bricks
+2. **Detect Cracks in Brick Walls** with visual explanations\n\n
 
 **Developed by:**\n
 Group 24 (Batch 213)\n
