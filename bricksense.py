@@ -22,7 +22,7 @@ with st.sidebar:
 
 st.sidebar.header("About This App")
 st.sidebar.write("""This app uses AI models for two purposes:\n
-1. **Predict Flexural Strength and Absorption** of individual bricks
+1. **Predict Flexural Load and Water Absorption** of individual bricks
 2. **Detect Cracks in Brick Walls** with visual explanations\n\n
 
 **Developed by:**\n
