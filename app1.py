@@ -109,8 +109,8 @@ if file:
             st.image(image, caption=f"Uploaded Brick (Predicted Class: {['1st', '2nd', '3rd'][class_label]})", use_container_width=True)
 
             # st.success(f"🧪 Normalized Flexural Strength: **{strength_norm:.3f}** (0–1 scale)")
-            st.success(f"🧪 Estimated Real Flexural Strength: **{strength_denorm:.2f} kN**")
-            st.success(f"💧 Estimated Absorption: **{absorption_real :.2f}%**")
+            st.success(f"🧪 Estimated Flexural Load: **{strength_denorm:.2f} kN**")
+            st.success(f"💧 Estimated Water Absorption: **{absorption_real :.2f}%**")
         st.subheader("📊 Classification Probabilities")
         st.write("""
         - **1st Class Brick:** {:.2f}%
