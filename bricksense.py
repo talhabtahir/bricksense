@@ -11,23 +11,25 @@ st.set_page_config(
         'Report a bug': 'https://example.com/bug',
         'About': 'Developed by BrickSense Team | © 2024'}
 )
-
-imagelogo = Image.open("static/BSbasicboxhightran1.png")
-st.image(imagelogo, use_container_width=True, width=150)
+#Simple Logo
+#____________________________________________________________
+# imagelogo = Image.open("static/BSbasicboxhightran1.png")
+# st.image(imagelogo, use_container_width=True, width=150)
+#_______________________________________________________________
 #_____________________
 #Clickabale Logo
 #_____________________
 import base64
 
 # Load and encode the image
-with open("static/BSbasicboxhightran1.png", "rb") as image_file:
+with open("static/logo.png", "rb") as image_file:
     encoded = base64.b64encode(image_file.read()).decode()
 
 # Create clickable image HTML
 link_url = "https://your-target-site.com"  # Replace with your actual URL
 html = f"""
-<a href="{link_url}" target="_blank">
-    <img src="data:image/png;base64,{encoded}" width="150" style="display:block; margin:auto;" />
+<a href="https://bricksense.carrd.co" target="">
+    <img src="data:image/png;base64,{encoded}" width="800" style="display:block; margin:auto;" />
 </a>
 """
 
