@@ -14,6 +14,25 @@ st.set_page_config(
 
 imagelogo = Image.open("static/BSbasicboxhightran1.png")
 st.image(imagelogo, use_container_width=True, width=150)
+#_____________________
+#Clickabale Logo
+#_____________________
+import base64
+
+# Load and encode the image
+with open("static/BSbasicboxhightran1.png", "rb") as image_file:
+    encoded = base64.b64encode(image_file.read()).decode()
+
+# Create clickable image HTML
+link_url = "https://your-target-site.com"  # Replace with your actual URL
+html = f"""
+<a href="{link_url}" target="_blank">
+    <img src="data:image/png;base64,{encoded}" width="150" style="display:block; margin:auto;" />
+</a>
+"""
+
+# Display clickable logo
+st.markdown(html, unsafe_allow_html=True)
 
 with st.sidebar:
     col1, col2, col3 = st.columns([1, 2, 1])
