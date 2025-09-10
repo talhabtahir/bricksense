@@ -7,7 +7,7 @@ st.set_page_config(
     page_icon="static/brickicon8.png",
     layout="centered",
     menu_items={
-        'Get Help': 'emailto:thebricksense@outlook.com',
+        'Get Help': 'https://talhabtahir.github.io/bricksensewebimproved/#activation',
         'Report a bug': 'https://talhabtahir.github.io/bricksensewebimproved/#contact',
         'About': 'Developed by BrickSense Team | © 2025'}
 )
