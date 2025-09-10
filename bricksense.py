@@ -7,9 +7,9 @@ st.set_page_config(
     page_icon="static/brickicon8.png",
     layout="centered",
     menu_items={
-        'Get Help': 'https://example.com/help',
-        'Report a bug': 'https://example.com/bug',
-        'About': 'Developed by BrickSense Team | © 2024'}
+        'Get Help': 'emailto:thebricksense@outlook.com',
+        'Report a bug': 'https://talhabtahir.github.io/bricksensewebimproved/#contact',
+        'About': 'Developed by BrickSense Team | © 2025'}
 )
 #Simple Logo
 #____________________________________________________________
@@ -29,7 +29,7 @@ with open("static/logo.png", "rb") as image_file:
 link_url = "https://your-target-site.com"  # Replace with your actual URL
 html = f"""
 <a href="https://bricksense.carrd.co" target="">
-    <img src="data:image/png;base64,{encoded}" width="600" style="display:block; margin:auto; margin-bottom:30px;" />
+    <img src="data:image/png;base64,{encoded}" width="600" style="display:block; margin:auto; margin-bottom:50px;" />
 </a>
 """
 
@@ -46,11 +46,11 @@ st.sidebar.write("""This app uses AI models for two purposes:\n
 1. **Predict Flexural Load and Water Absorption** of individual bricks
 2. **Detect Cracks in Brick Walls** with visual explanations\n\n
 
-**Developed by:**\n
+**Developed at CUST by:**\n
 Group 24 (Batch 213)\n
 Group 25 (Batch 203)\n
-Talha Bin Tahir\n
-**Email:** talhabtahir@gmail.com
+Engr. Talha Bin Tahir\n
+**Email:** thebricksense@outlook.com
 """)
 
 # App Selection using dropdown
@@ -67,7 +67,7 @@ elif app_mode == "Detect Brick Wall Cracks":
 # Common Footer
 st.markdown("""
 <div style="position: fixed; left: 0; bottom: 0; width: 100%; background-color: white; color: gray; text-align: center; font-size: small; padding: 10px;">
-    Developed with Streamlit & TensorFlow | © 2025 BrickSense
+    Developed with AI Streamlit & TensorFlow at CUST | © 2025 BrickSense
 </div>
 """, unsafe_allow_html=True)
 
