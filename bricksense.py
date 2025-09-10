@@ -29,7 +29,7 @@ with open("static/logo.png", "rb") as image_file:
 link_url = "https://your-target-site.com"  # Replace with your actual URL
 html = f"""
 <a href="https://bricksense.carrd.co" target="">
-    <img src="data:image/png;base64,{encoded}" width="800" style="display:block; margin:auto;" />
+    <img src="data:image/png;base64,{encoded}" width="600" style="display:block; margin:auto; margin-bottom:30px;" />
 </a>
 """
 
