@@ -4,6 +4,7 @@ on:
   schedule:
     # Runs every 3 hours (UTC)
     - cron: "0 */3 * * *"
+  workflow_dispatch:  # 👈 allows you to trigger manually from GitHub UI
 
 jobs:
   keep-awake:
