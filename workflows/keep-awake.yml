@@ -1,0 +1,28 @@
+name: Keep Streamlit App Awake
+
+on:
+  schedule:
+    # Runs every 3 hours (UTC)
+    - cron: "0 */3 * * *"
+
+jobs:
+  keep-awake:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # allow pushing commits
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Update timestamp file
+        run: |
+          echo "Last wake: $(date -u)" > last_wake.txt
+
+      - name: Commit and push changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          author_name: "github-actions[bot]"
+          author_email: "github-actions[bot]@users.noreply.github.com"
+          message: "chore: wake app at $(date -u)"
+          add: "last_wake.txt"
