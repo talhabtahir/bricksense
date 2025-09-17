@@ -53,16 +53,15 @@ Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
 # Go Back Button 
-# Centered Go Back Button using meta refresh
-st.markdown("""
-<div style="text-align:center; margin-bottom:20px;">
-    <form action="https://talhabtahir.github.io/bricksensewebimproved">
-        <input type="submit" value="⬅ Go Back to Home"
-               style="padding:10px 20px; font-size:16px; background-color:#f44336; color:white; border:none; border-radius:5px; cursor:pointer;">
-    </form>
-</div>
-""", unsafe_allow_html=True)
+import streamlit.components.v1 as components
 
+# Centered Go Back Button
+if st.button("⬅ Go Back to Home"):
+    components.html("""
+        <script>
+            window.top.location.replace("https://talhabtahir.github.io/bricksensewebimproved");
+        </script>
+    """, height=0)
 
 # App Selection using dropdown
 app_options = ["Select an App", "Predict Brick Properties", "Detect Brick Wall Cracks"]
