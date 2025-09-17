@@ -28,7 +28,7 @@ with open("static/logo.png", "rb") as image_file:
 # Create clickable image HTML
 link_url = "https://your-target-site.com"  # Replace with your actual URL
 html = f"""
-<a href="https://bricksense.carrd.co" target="">
+<a href="https://bricksense.carrd.co">
     <img src="data:image/png;base64,{encoded}" width="600" style="display:block; margin:auto; margin-bottom:50px;" />
 </a>
 """
@@ -52,7 +52,15 @@ Group 25 (Batch 203)\n
 Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
-
+# Go Back Button (HTML + JS)
+st.markdown("""
+<div style="text-align:center; margin-bottom:20px;">
+    <button onclick="window.location.href='https://talhabtahir.github.io/bricksensewebimproved'" 
+            style="padding:10px 20px; font-size:16px; background-color:#f44336; color:white; border:none; border-radius:5px; cursor:pointer;">
+        ⬅ Go Back to Home
+    </button>
+</div>
+""", unsafe_allow_html=True)
 # App Selection using dropdown
 app_options = ["Select an App", "Predict Brick Properties", "Detect Brick Wall Cracks"]
 app_mode = st.selectbox("Choose Application", options=app_options, index=0)
