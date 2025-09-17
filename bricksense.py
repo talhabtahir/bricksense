@@ -55,7 +55,9 @@ Engr. Talha Bin Tahir\n
 # Go Back Button 
 if st.button("⬅ Go Back to Home"):
     st.markdown("""
-        <meta http-equiv="refresh" content="0; url='https://talhabtahir.github.io/bricksensewebimproved'" />
+        <script>
+            window.top.location.href = "https://talhabtahir.github.io/bricksensewebimproved";
+        </script>
     """, unsafe_allow_html=True)
 
 # App Selection using dropdown
