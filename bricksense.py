@@ -53,13 +53,11 @@ Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
 # Go Back Button 
-import streamlit.components.v1 as components
-
-# Centered Go Back Button
-if st.button("⬅ Go Back to Home"):
+# Centered Back Button
+if st.button("⬅ Go Back"):
     components.html("""
         <script>
-            window.top.location.replace("https://talhabtahir.github.io/bricksensewebimproved");
+            window.history.back();
         </script>
     """, height=0)
 
