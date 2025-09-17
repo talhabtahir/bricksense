@@ -53,13 +53,19 @@ Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
 # Go Back Button 
-# Centered Back Button
-if st.button("⬅ Go Back"):
+import streamlit as st
+import streamlit.components.v1 as components
+
+st.markdown("<div style='text-align:center; margin-bottom:20px;'>", unsafe_allow_html=True)
+
+if st.button("⬅ Go Back to Home"):
     components.html("""
         <script>
-            window.history.back();
+            window.top.location.href = "https://talhabtahir.github.io/bricksensewebimproved";
         </script>
     """, height=0)
+
+st.markdown("</div>", unsafe_allow_html=True)
 
 # App Selection using dropdown
 app_options = ["Select an App", "Predict Brick Properties", "Detect Brick Wall Cracks"]
