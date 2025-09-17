@@ -52,15 +52,12 @@ Group 25 (Batch 203)\n
 Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
-# Go Back Button (HTML + JS)
-st.markdown("""
-<div style="text-align:center; margin-bottom:20px;">
-    <button onclick="window.location.href='https://talhabtahir.github.io/bricksensewebimproved'" 
-            style="padding:10px 20px; font-size:16px; background-color:#f44336; color:white; border:none; border-radius:5px; cursor:pointer;">
-        ⬅ Go Back to Home
-    </button>
-</div>
-""", unsafe_allow_html=True)
+# Go Back Button 
+if st.button("⬅ Go Back to Home"):
+    st.markdown("""
+        <meta http-equiv="refresh" content="0; url='https://talhabtahir.github.io/bricksensewebimproved'" />
+    """, unsafe_allow_html=True)
+
 # App Selection using dropdown
 app_options = ["Select an App", "Predict Brick Properties", "Detect Brick Wall Cracks"]
 app_mode = st.selectbox("Choose Application", options=app_options, index=0)
