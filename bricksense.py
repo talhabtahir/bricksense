@@ -26,9 +26,9 @@ with open("static/logo.png", "rb") as image_file:
     encoded = base64.b64encode(image_file.read()).decode()
 
 # Create clickable image HTML
-link_url = "https://your-target-site.com"  # Replace with your actual URL
+link_url = "https://talhabtahir.github.io/bricksensewebimproved/"  # Replace with your actual URL
 html = f"""
-<a href="https://bricksense.carrd.co">
+<a href="{link_url}">
     <img src="data:image/png;base64,{encoded}" width="600" style="display:block; margin:auto; margin-bottom:50px;" />
 </a>
 """
