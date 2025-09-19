@@ -11,28 +11,6 @@ st.set_page_config(
         'Report a bug': 'https://talhabtahir.github.io/bricksensewebimproved/#contact',
         'About': 'Developed by BrickSense Team | © 2025'}
 )
-# Translusent Background
-st.markdown(
-    """
-    <style>
-    /* Main app container */
-    .stApp {
-        background: rgba(255, 255, 255, 0.6); /* semi-transparent white */
-        backdrop-filter: blur(10px);           /* frosted glass effect */
-        -webkit-backdrop-filter: blur(10px);   /* Safari support */
-    }
-
-    /* Sidebar */
-    section[data-testid="stSidebar"] {
-        background: rgba(255, 255, 255, 0.5);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 #Simple Logo
 #____________________________________________________________
 # imagelogo = Image.open("static/BSbasicboxhightran1.png")
