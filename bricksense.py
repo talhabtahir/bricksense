@@ -12,28 +12,28 @@ st.set_page_config(
         'About': 'Developed by BrickSense Team | © 2025'}
 )
 # Force white background regardless of user theme
-st.markdown(
-    """
-    <style>
-    /* Main app background */
-    .stApp {
-        background-color: white !important;
-        color: black !important;
-    }
+# st.markdown(
+#     """
+#     <style>
+#     /* Main app background */
+#     .stApp {
+#         background-color: white !important;
+#         color: black !important;
+#     }
 
-    /* Sidebar background */
-    section[data-testid="stSidebar"] {
-        background-color: white !important;
-    }
+#     /* Sidebar background */
+#     section[data-testid="stSidebar"] {
+#         background-color: white !important;
+#     }
 
-    /* Optional: force text color to black */
-    .stMarkdown, .stText, .stSelectbox, .stButton, .stHeader, .stSubheader {
-        color: black !important;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+#     /* Optional: force text color to black */
+#     .stMarkdown, .stText, .stSelectbox, .stButton, .stHeader, .stSubheader {
+#         color: black !important;
+#     }
+#     </style>
+#     """,
+#     unsafe_allow_html=True
+# )
 #Simple Logo
 #____________________________________________________________
 # imagelogo = Image.open("static/BSbasicboxhightran1.png")
