@@ -3,15 +3,7 @@ tensorflow
 pillow
 numpy
 torch
-opencv-python-headless
 ultralytics
 matplotlib
 streamlit-image-comparison
-streamlit
-tensorflow
-opencv-python
-Pillow
-numpy
-matplotlib
-keras
-streamlit-image-comparison
+opencv-python-headless
