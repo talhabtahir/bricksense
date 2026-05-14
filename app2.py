@@ -390,7 +390,7 @@ else:
             image = correct_orientation(image)
 
             # ── Auto-resize large images to protect memory ─────────────
-            MAX_DIMENSION = 4000   # max width or height in pixels
+            MAX_DIMENSION = 3000   # max width or height in pixels
             orig_w, orig_h = image.size
             if max(orig_w, orig_h) > MAX_DIMENSION:
                 scale  = MAX_DIMENSION / max(orig_w, orig_h)
