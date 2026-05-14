@@ -1,4 +1,3 @@
-
 import streamlit as st
 import tensorflow as tf
 from PIL import Image, ImageOps, ExifTags, ImageEnhance
@@ -127,7 +126,7 @@ def import_and_predict(image_data, sensitivity=9):
 
 
 # ──────────────────────────────────────────────
-# NEW: Tile-based crack detection
+# Tile-based crack detection helpers
 # ──────────────────────────────────────────────
 
 def build_custom_model(sensitivity=9):
@@ -153,14 +152,52 @@ def predict_tiles_batch(tiles_np, sensitivity=9):
     return pred_indices, pred_vecs, conv_outputs
 
 
-def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confidence_threshold=95.0):
+def ensemble_predict_tiles(tiles_np, sensitivity_levels=(7, 9, 11)):
+    """
+    Run the model at multiple sensitivity levels and average the prediction
+    vectors (soft voting). Returns blended pred_indices, pred_vecs, and
+    conv_outputs from the middle sensitivity level.
+
+    tiles_np          : list of np.ndarray, each (224, 224, 3)
+    sensitivity_levels: tuple/list of int layer indices to ensemble over
+    Returns:
+        pred_indices        : list[int]  — argmax of averaged softmax
+        averaged_pred_vecs  : np.ndarray (N, num_classes)
+        middle_conv_outputs : np.ndarray (N, H, W, C)  from middle level
+    """
+    all_pred_vecs       = []
+    middle_conv_outputs = None
+    mid_idx             = len(sensitivity_levels) // 2   # middle level index
+
+    for i, sens in enumerate(sensitivity_levels):
+        batch        = np.stack(tiles_np, axis=0) / 255.0
+        custom_model = build_custom_model(sens)
+        conv_outputs, pred_vecs = custom_model.predict(batch, verbose=0)
+        all_pred_vecs.append(pred_vecs)
+        if i == mid_idx:
+            middle_conv_outputs = conv_outputs   # keep conv map from middle level
+
+    # Soft voting: average softmax probabilities across all levels
+    averaged_pred_vecs = np.mean(all_pred_vecs, axis=0)          # (N, num_classes)
+    pred_indices       = [int(np.argmax(pv)) for pv in averaged_pred_vecs]
+
+    return pred_indices, averaged_pred_vecs, middle_conv_outputs
+
+
+# ──────────────────────────────────────────────
+# Tile-based crack detection (main function)
+# ──────────────────────────────────────────────
+
+def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None,
+                           confidence_threshold=95.0,
+                           use_ensemble=False, ensemble_levels=(7, 9, 11)):
     """
     1. Pad image so it tiles perfectly into 224×224 blocks.
-    2. Run the model on each tile.
+    2. Run the model on each tile (single sensitivity or ensemble).
     3. For tiles predicted as 'Cracked', generate a heatmap and contours.
     4. Assemble a full-resolution output image with contours drawn only in
        cracked segments, plus a coloured tile-grid overlay.
-    Returns (result_image, summary_dict).
+    Returns (result_image, tile_grid_image, contours_only_image, numbered_image, summary).
     """
     original_img = np.array(image_data)
     if original_img.shape[-1] == 4:
@@ -182,23 +219,23 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
     contour_thickness = max(2, int(max(orig_w, orig_h) / 200))
 
     # Output canvas: copy of padded image; we draw contours onto it
-    output_canvas    = padded_img.copy()
+    output_canvas     = padded_img.copy()
     # Tile-grid overlay: colour each tile by class
     tile_grid_overlay = padded_img.copy().astype(np.float32)
 
-    # Colour codes per class  (BGR for OpenCV)
+    # Colour codes per class (BGR for OpenCV)
     CLASS_COLORS_BGR = {
-        0: (0,   200,  0),    # Normal  → green
-        1: (0,   0,   255),   # Cracked → red
+        0: (0,   200,  0),    # Normal    → green
+        1: (0,   0,   255),   # Cracked   → red
         2: (0,   165, 255),   # Not a wall → orange
     }
     CLASS_LABELS = {0: "Normal", 1: "Cracked", 2: "Not a Wall"}
 
-    tile_results = []   # list of dicts: {row, col, pred, conf}
-    cracked_count = 0
-    MINI_BATCH_SIZE = 64  # process this many tiles at once to limit memory usage
+    tile_results    = []   # list of dicts: {row, col, pred, label, confidence}
+    cracked_count   = 0
+    MINI_BATCH_SIZE = 64   # process this many tiles at once to limit memory
 
-    # ── Collect all tile coordinates and pixel data ───────────────────────────
+    # ── Collect all tile coordinates and pixel data ───────────────────────
     tile_coords = []   # (r, c, y0, y1, x0, x1)
     tiles_np    = []   # raw pixel arrays
 
@@ -209,8 +246,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
             tile_coords.append((r, c, y0, y1, x0, x1))
             tiles_np.append(padded_img[y0:y1, x0:x1])
 
-    # ── Mini-batch forward passes ─────────────────────────────────────────────
-    # Process tiles in small groups to avoid out-of-memory on large images
+    # ── Mini-batch forward passes ─────────────────────────────────────────
     all_pred_indices = []
     all_pred_vecs    = []
     all_conv_outputs = []
@@ -225,9 +261,16 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
                 text=f"Predicting tiles {batch_start + 1}–{batch_end} of {total_tiles} …"
             )
 
-        b_pred_indices, b_pred_vecs, b_conv_outputs = predict_tiles_batch(
-            batch_tiles, sensitivity
-        )
+        # ── Choose single or ensemble prediction ──────────────────────────
+        if use_ensemble:
+            b_pred_indices, b_pred_vecs, b_conv_outputs = ensemble_predict_tiles(
+                batch_tiles, sensitivity_levels=tuple(ensemble_levels)
+            )
+        else:
+            b_pred_indices, b_pred_vecs, b_conv_outputs = predict_tiles_batch(
+                batch_tiles, sensitivity
+            )
+
         all_pred_indices.extend(b_pred_indices)
         all_pred_vecs.append(b_pred_vecs)
         all_conv_outputs.append(b_conv_outputs)
@@ -237,7 +280,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
     pred_vecs    = np.concatenate(all_pred_vecs,    axis=0)
     conv_outputs = np.concatenate(all_conv_outputs, axis=0)
 
-    # ── Post-process each tile result ─────────────────────────────────────────
+    # ── Post-process each tile result ─────────────────────────────────────
     for tile_idx, (r, c, y0, y1, x0, x1) in enumerate(tile_coords):
         pred_index  = pred_indices[tile_idx]
         pred_vec    = pred_vecs[tile_idx]
@@ -245,20 +288,21 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
 
         conf = float(pred_vec[pred_index]) * 100
 
-        # If predicted as cracked but confidence < 95%, downgrade to Normal
+        # Downgrade low-confidence crack predictions to Normal
         if pred_index == 1 and conf < confidence_threshold:
             pred_index = 0
 
         tile_results.append({
-            "row": r, "col": c,
-            "pred": pred_index,
-            "label": CLASS_LABELS[pred_index],
+            "row":        r,
+            "col":        c,
+            "pred":       pred_index,
+            "label":      CLASS_LABELS[pred_index],
             "confidence": conf,
         })
 
         color_bgr = CLASS_COLORS_BGR[pred_index]
 
-        # ── Colour the tile in the grid overlay ─────────────────────
+        # ── Colour the tile in the grid overlay ──────────────────────
         alpha = 0.35
         tile_grid_overlay[y0:y1, x0:x1] = (
             (1 - alpha) * tile_grid_overlay[y0:y1, x0:x1].astype(np.float32)
@@ -267,7 +311,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
 
         # Draw tile border
         cv2.rectangle(output_canvas, (x0, y0), (x1 - 1, y1 - 1),
-                      color_bgr[::-1], 2)   # BGR→RGB for PIL canvas
+                      color_bgr[::-1], 2)
         cv2.rectangle(tile_grid_overlay.astype(np.uint8), (x0, y0),
                       (x1 - 1, y1 - 1), color_bgr[::-1], 2)
 
@@ -275,7 +319,6 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
         if pred_index == 1:
             cracked_count += 1
 
-            # Build heatmap from conv output
             heat = np.mean(conv_output, axis=-1) if conv_output.ndim == 3 else conv_output
             heat = np.maximum(heat, 0)
             if heat.max() > 0:
@@ -289,89 +332,84 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confiden
             contours, _   = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL,
                                               cv2.CHAIN_APPROX_SIMPLE)
 
-            # Shift contours to tile position in full image
             shifted = [cnt + np.array([[[x0, y0]]]) for cnt in contours]
             cv2.drawContours(output_canvas, shifted, -1,
-                             (255, 0, 0), contour_thickness)   # blue contours (RGB)
+                             (255, 0, 0), contour_thickness)
 
         # Update progress bar (post-processing phase)
         if progress_bar is not None:
-            progress_bar.progress((tile_idx + 1) / total_tiles,
-                                  text=f"Post-processing tile {tile_idx + 1}/{total_tiles} …")
+            progress_bar.progress(
+                (tile_idx + 1) / total_tiles,
+                text=f"Post-processing tile {tile_idx + 1}/{total_tiles} …"
+            )
 
-    # ── Image 3: contours only on clean original — reuse batch conv_outputs ──
+    # ── Image 3: contours only on clean original ──────────────────────────
     contours_only_canvas = padded_img.copy()
     for tile_idx2, (r2, c2, y0t, y1t, x0t, x1t) in enumerate(tile_coords):
         t = tile_results[tile_idx2]
         if t["pred"] == 1:
-            conv_out2  = conv_outputs[tile_idx2]   # already computed in batch
-            heat2      = np.mean(conv_out2, axis=-1) if conv_out2.ndim == 3 else conv_out2
-            heat2      = np.maximum(heat2, 0)
+            conv_out2 = conv_outputs[tile_idx2]
+            heat2     = np.mean(conv_out2, axis=-1) if conv_out2.ndim == 3 else conv_out2
+            heat2     = np.maximum(heat2, 0)
             if heat2.max() > 0:
                 heat2 = heat2 / heat2.max()
-            heat2_resized  = cv2.resize(heat2, (TILE_SIZE, TILE_SIZE),
-                                        interpolation=cv2.INTER_LINEAR)
-            heat2_uint8    = np.uint8(255 * heat2_resized)
-            _, thresh2     = cv2.threshold(heat2_uint8, int(255 * 0.5),
-                                           255, cv2.THRESH_BINARY)
-            contours2, _   = cv2.findContours(thresh2, cv2.RETR_EXTERNAL,
-                                               cv2.CHAIN_APPROX_SIMPLE)
+            heat2_resized = cv2.resize(heat2, (TILE_SIZE, TILE_SIZE),
+                                       interpolation=cv2.INTER_LINEAR)
+            heat2_uint8   = np.uint8(255 * heat2_resized)
+            _, thresh2    = cv2.threshold(heat2_uint8, int(255 * 0.5),
+                                          255, cv2.THRESH_BINARY)
+            contours2, _  = cv2.findContours(thresh2, cv2.RETR_EXTERNAL,
+                                              cv2.CHAIN_APPROX_SIMPLE)
             shifted2 = [cnt + np.array([[[x0t, y0t]]]) for cnt in contours2]
             cv2.drawContours(contours_only_canvas, shifted2, -1,
                              (255, 0, 0), contour_thickness)
     contours_only_image = Image.fromarray(contours_only_canvas[:orig_h, :orig_w])
 
-    # ── Image 4: numbered tile grid ────────────────────────────────────────
+    # ── Image 4: numbered tile grid ───────────────────────────────────────
     numbered_canvas = padded_img.copy()
-    font             = cv2.FONT_HERSHEY_SIMPLEX
-    tile_number      = 0
-    # Scale font relative to the full image size so numbers are readable
-    # on both small and large images — larger images get proportionally larger text
-    max_img_dim    = max(orig_w, orig_h)
-    font_scale     = max(0.4, max_img_dim / 1500)   # grows linearly with image size
-    font_thickness = max(1, int(font_scale * 2.5))  # thickness tracks scale
+    font            = cv2.FONT_HERSHEY_SIMPLEX
+    tile_number     = 0
+    max_img_dim     = max(orig_w, orig_h)
+    font_scale      = max(0.4, max_img_dim / 1500)
+    font_thickness  = max(1, int(font_scale * 2.5))
     for r2 in range(n_rows):
         for c2 in range(n_cols):
-            y0t = r2 * TILE_SIZE
-            x0t = c2 * TILE_SIZE
+            y0t   = r2 * TILE_SIZE
+            x0t   = c2 * TILE_SIZE
             t_info = next(t for t in tile_results if t["row"] == r2 and t["col"] == c2)
             color_bgr = CLASS_COLORS_BGR[t_info["pred"]]
             color_rgb = color_bgr[::-1]
-            # Draw tile border in class colour
             cv2.rectangle(numbered_canvas,
                           (x0t, y0t),
                           (x0t + TILE_SIZE - 1, y0t + TILE_SIZE - 1),
                           color_rgb, 2)
-            # Draw tile number at top-left corner in black
             label_str   = str(tile_number)
             padding     = max(4, int(TILE_SIZE * 0.04))
             (tw, th), _ = cv2.getTextSize(label_str, font, font_scale, font_thickness)
             tx = x0t + padding
             ty = y0t + th + padding
-            # White shadow for readability
             cv2.putText(numbered_canvas, label_str, (tx + 1, ty + 1),
                         font, font_scale, (255, 255, 255), font_thickness + 1,
                         cv2.LINE_AA)
-            # Black text
             cv2.putText(numbered_canvas, label_str, (tx, ty),
                         font, font_scale, (0, 0, 0), font_thickness,
                         cv2.LINE_AA)
             tile_number += 1
     numbered_image = Image.fromarray(numbered_canvas[:orig_h, :orig_w])
 
-    # ── Crop back to original dimensions ──────────────────────────────────
-    result_image      = Image.fromarray(output_canvas[:orig_h, :orig_w])
-    tile_grid_image   = Image.fromarray(
+    # ── Crop back to original dimensions ─────────────────────────────────
+    result_image    = Image.fromarray(output_canvas[:orig_h, :orig_w])
+    tile_grid_image = Image.fromarray(
         tile_grid_overlay.astype(np.uint8)[:orig_h, :orig_w]
     )
 
     summary = {
-        "total":   total_tiles,
-        "cracked": cracked_count,
-        "normal":  sum(1 for t in tile_results if t["pred"] == 0),
-        "not_wall":sum(1 for t in tile_results if t["pred"] == 2),
-        "tiles":   tile_results,
-        "grid":    (n_rows, n_cols),
+        "total":    total_tiles,
+        "cracked":  cracked_count,
+        "normal":   sum(1 for t in tile_results if t["pred"] == 0),
+        "not_wall": sum(1 for t in tile_results if t["pred"] == 2),
+        "tiles":    tile_results,
+        "grid":     (n_rows, n_cols),
     }
     return result_image, tile_grid_image, contours_only_image, numbered_image, summary
 
@@ -391,13 +429,13 @@ else:
             image = correct_orientation(image)
 
             # ── Auto-resize large images to protect memory ─────────────
-            MAX_DIMENSION = 3000   # max width or height in pixels
+            MAX_DIMENSION = 3000
             orig_w, orig_h = image.size
             if max(orig_w, orig_h) > MAX_DIMENSION:
-                scale  = MAX_DIMENSION / max(orig_w, orig_h)
-                new_w  = int(orig_w * scale)
-                new_h  = int(orig_h * scale)
-                image  = image.resize((new_w, new_h), Image.LANCZOS)
+                scale = MAX_DIMENSION / max(orig_w, orig_h)
+                new_w = int(orig_w * scale)
+                new_h = int(orig_h * scale)
+                image = image.resize((new_w, new_h), Image.LANCZOS)
                 st.info(
                     f"📐 Image resized from {orig_w}×{orig_h} to {new_w}×{new_h} px "
                     f"to fit within memory limits. Detection quality is not affected."
@@ -438,7 +476,7 @@ else:
 
                 st.write("")
 
-                # Sensitivity slider
+                # ── Settings expander ──────────────────────────────────
                 with st.expander("🔍 Sensitivity Settings"):
                     sensitivity = st.slider(
                         "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
@@ -448,9 +486,32 @@ else:
                     confidence_threshold = st.slider(
                         "🎚️ Crack Confidence Threshold (%)",
                         min_value=10.0, max_value=99.0, value=95.0, step=1.0,
-                        help="Tiles predicted as 'Cracked' below this confidence are reclassified as Normal. "
-                             "Lower = more sensitive (more tiles flagged) | Higher = more conservative."
+                        help=(
+                            "Tiles predicted as 'Cracked' below this confidence are reclassified as Normal. "
+                            "Lower = more sensitive (more tiles flagged) | Higher = more conservative."
+                        ),
                     )
+                    st.divider()
+                    use_ensemble = st.toggle(
+                        "🧪 Ensemble Mode (average predictions across multiple sensitivity levels)",
+                        value=False,
+                        help=(
+                            "Runs the model at multiple sensitivity levels and averages the results "
+                            "for more robust tile predictions. Slower but more reliable."
+                        ),
+                    )
+                    if use_ensemble:
+                        ensemble_levels = st.multiselect(
+                            "Sensitivity levels to ensemble",
+                            options=list(range(0, 13)),
+                            default=[7, 9, 11],
+                            help="Select 2 or more levels. More levels = more robust but slower.",
+                        )
+                        if len(ensemble_levels) < 2:
+                            st.warning("⚠️ Please select at least 2 sensitivity levels for ensemble.")
+                            use_ensemble = False
+                    else:
+                        ensemble_levels = [sensitivity]   # fallback (unused when ensemble is off)
 
                 # Re-run whole-image prediction with chosen sensitivity
                 predictions, image_with_border, contours_with_border, \
@@ -507,7 +568,7 @@ else:
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 # ══════════════════════════════════════════════════════════
-                # NEW: Tile-based section
+                # Tile-based section
                 # ══════════════════════════════════════════════════════════
                 st.divider()
                 st.subheader("🧩 Tile-Based Segment Analysis (224 × 224 px tiles)")
@@ -516,24 +577,37 @@ else:
                     "Each tile is independently classified. "
                     "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
                 )
-            
+
                 run_tiled = st.button("▶ Run Tile-Based Analysis", type="primary")
 
                 if run_tiled:
                     progress_bar = st.progress(0, text="Starting tile analysis …")
+
+                    # Show ensemble info banner before running
+                    if use_ensemble:
+                        st.info(
+                            f"🧪 Ensemble mode active — averaging predictions across "
+                            f"sensitivity levels: {sorted(ensemble_levels)}"
+                        )
+
                     tiled_result, tile_grid_img, contours_only_img, numbered_img, summary = tiled_crack_detection(
-                        image, sensitivity=sensitivity, progress_bar=progress_bar, confidence_threshold=confidence_threshold
+                        image,
+                        sensitivity=sensitivity,
+                        progress_bar=progress_bar,
+                        confidence_threshold=confidence_threshold,
+                        use_ensemble=use_ensemble,
+                        ensemble_levels=ensemble_levels,
                     )
                     progress_bar.empty()
 
                     # ── Summary metrics ────────────────────────────────
                     m1, m2, m3, m4 = st.columns(4)
-                    m1.metric("Total Tiles",    summary["total"])
-                    m2.metric("🔴 Cracked",     summary["cracked"],
-                              delta=f"{summary['cracked']/summary['total']*100:.1f}%",
+                    m1.metric("Total Tiles",   summary["total"])
+                    m2.metric("🔴 Cracked",    summary["cracked"],
+                              delta=f"{summary['cracked'] / summary['total'] * 100:.1f}%",
                               delta_color="inverse")
-                    m3.metric("🟢 Normal",      summary["normal"])
-                    m4.metric("🟠 Not a Wall",  summary["not_wall"])
+                    m3.metric("🟢 Normal",     summary["normal"])
+                    m4.metric("🟠 Not a Wall", summary["not_wall"])
 
                     cracked_pct = summary["cracked"] / summary["total"] * 100
                     if summary["cracked"] == 0:
@@ -575,11 +649,12 @@ else:
                         df = pd.DataFrame(summary["tiles"])
                         df.columns = ["Row", "Col", "Pred Index", "Label", "Confidence (%)"]
                         df["Confidence (%)"] = df["Confidence (%)"].round(2)
-                        # Highlight cracked rows
+
                         def highlight_cracked(row):
                             if row["Label"] == "Cracked":
                                 return ["background-color: #ffe0e0"] * len(row)
                             return [""] * len(row)
+
                         st.dataframe(df.style.apply(highlight_cracked, axis=1),
                                      use_container_width=True)
 
