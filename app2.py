@@ -253,6 +253,64 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
                 progress_bar.progress((tile_idx + 1) / total_tiles,
                                       text=f"Analysing tile {tile_idx + 1}/{total_tiles} …")
 
+    # ── Image 3: contours only on clean original (no tile borders/tints) ──
+    contours_only_canvas = padded_img.copy()
+    for t in tile_results:
+        if t["pred"] == 1:
+            r2, c2 = t["row"], t["col"]
+            y0t, y1t = r2 * TILE_SIZE, (r2 + 1) * TILE_SIZE
+            x0t, x1t = c2 * TILE_SIZE, (c2 + 1) * TILE_SIZE
+            tile_np2 = padded_img[y0t:y1t, x0t:x1t]
+            _, _, conv_out2 = predict_tile(tile_np2, sensitivity)
+            heat2 = np.mean(conv_out2, axis=-1) if conv_out2.ndim == 3 else conv_out2
+            heat2 = np.maximum(heat2, 0)
+            if heat2.max() > 0:
+                heat2 = heat2 / heat2.max()
+            heat2_resized  = cv2.resize(heat2, (TILE_SIZE, TILE_SIZE),
+                                        interpolation=cv2.INTER_LINEAR)
+            heat2_uint8    = np.uint8(255 * heat2_resized)
+            _, thresh2     = cv2.threshold(heat2_uint8, int(255 * 0.5),
+                                           255, cv2.THRESH_BINARY)
+            contours2, _   = cv2.findContours(thresh2, cv2.RETR_EXTERNAL,
+                                               cv2.CHAIN_APPROX_SIMPLE)
+            shifted2 = [cnt + np.array([[[x0t, y0t]]]) for cnt in contours2]
+            cv2.drawContours(contours_only_canvas, shifted2, -1,
+                             (255, 0, 0), contour_thickness)
+    contours_only_image = Image.fromarray(contours_only_canvas[:orig_h, :orig_w])
+
+    # ── Image 4: numbered tile grid ────────────────────────────────────────
+    numbered_canvas = padded_img.copy()
+    font             = cv2.FONT_HERSHEY_SIMPLEX
+    tile_number      = 1
+    font_scale       = max(0.35, TILE_SIZE / 400)
+    font_thickness   = max(1, int(TILE_SIZE / 150))
+    for r2 in range(n_rows):
+        for c2 in range(n_cols):
+            y0t = r2 * TILE_SIZE
+            x0t = c2 * TILE_SIZE
+            t_info = next(t for t in tile_results if t["row"] == r2 and t["col"] == c2)
+            color_bgr = CLASS_COLORS_BGR[t_info["pred"]]
+            color_rgb = color_bgr[::-1]
+            # Draw tile border in class colour
+            cv2.rectangle(numbered_canvas,
+                          (x0t, y0t),
+                          (x0t + TILE_SIZE - 1, y0t + TILE_SIZE - 1),
+                          color_rgb, 2)
+            # Draw tile number centred in tile
+            label_str  = str(tile_number)
+            (tw, th), _ = cv2.getTextSize(label_str, font, font_scale, font_thickness)
+            tx = x0t + (TILE_SIZE - tw) // 2
+            ty = y0t + (TILE_SIZE + th) // 2
+            # White shadow for readability
+            cv2.putText(numbered_canvas, label_str, (tx + 1, ty + 1),
+                        font, font_scale, (255, 255, 255), font_thickness + 1,
+                        cv2.LINE_AA)
+            cv2.putText(numbered_canvas, label_str, (tx, ty),
+                        font, font_scale, color_rgb, font_thickness,
+                        cv2.LINE_AA)
+            tile_number += 1
+    numbered_image = Image.fromarray(numbered_canvas[:orig_h, :orig_w])
+
     # ── Crop back to original dimensions ──────────────────────────────────
     result_image      = Image.fromarray(output_canvas[:orig_h, :orig_w])
     tile_grid_image   = Image.fromarray(
@@ -267,7 +325,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
         "tiles":   tile_results,
         "grid":    (n_rows, n_cols),
     }
-    return result_image, tile_grid_image, summary
+    return result_image, tile_grid_image, contours_only_image, numbered_image, summary
 
 
 # ══════════════════════════════════════════════
@@ -395,7 +453,7 @@ else:
 
                 if run_tiled:
                     progress_bar = st.progress(0, text="Starting tile analysis …")
-                    tiled_result, tile_grid_img, summary = tiled_crack_detection(
+                    tiled_result, tile_grid_img, contours_only_img, numbered_img, summary = tiled_crack_detection(
                         image, sensitivity=sensitivity, progress_bar=progress_bar
                     )
                     progress_bar.empty()
@@ -419,7 +477,7 @@ else:
                     else:
                         st.error(f"🚨 Severe cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
 
-                    # ── Output images ──────────────────────────────────
+                    # ── Row 1: colour-coded grid | contours+heatmap overlay ──
                     st.write("")
                     tc1, tc2 = st.columns(2)
                     with tc1:
@@ -429,6 +487,18 @@ else:
                     with tc2:
                         st.image(tiled_result,
                                  caption="Contour lines drawn in cracked tiles",
+                                 use_container_width=True)
+
+                    # ── Row 2: contours only | numbered tile grid ──────────
+                    st.write("")
+                    tc3, tc4 = st.columns(2)
+                    with tc3:
+                        st.image(contours_only_img,
+                                 caption="Crack contours on original image (no tinting)",
+                                 use_container_width=True)
+                    with tc4:
+                        st.image(numbered_img,
+                                 caption="Numbered tiles (colour = predicted class)",
                                  use_container_width=True)
 
                     # ── Tile-by-tile breakdown table ───────────────────
