@@ -3,7 +3,6 @@ tensorflow
 pillow
 numpy
 torch
-ultralytics
 matplotlib
 streamlit-image-comparison
 opencv-python-headless
