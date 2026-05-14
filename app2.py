@@ -282,8 +282,11 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
     numbered_canvas = padded_img.copy()
     font             = cv2.FONT_HERSHEY_SIMPLEX
     tile_number      = 0
-    font_scale       = max(0.35, TILE_SIZE / 400)
-    font_thickness   = max(1, int(TILE_SIZE / 150))
+    # Scale font relative to the full image size so numbers are readable
+    # on both small and large images — larger images get proportionally larger text
+    max_img_dim    = max(orig_w, orig_h)
+    font_scale     = max(0.4, max_img_dim / 1500)   # grows linearly with image size
+    font_thickness = max(1, int(font_scale * 2.5))  # thickness tracks scale
     for r2 in range(n_rows):
         for c2 in range(n_cols):
             y0t = r2 * TILE_SIZE
