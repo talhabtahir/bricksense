@@ -203,6 +203,9 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
 
             # Track results
             conf = float(pred_vec[0][pred_index]) * 100
+            # If predicted as cracked but confidence < 95%, downgrade to Normal
+            if pred_index == 1 and conf < 95.0:
+                pred_index = 0
             tile_results.append({
                 "row": r, "col": c,
                 "pred": pred_index,
