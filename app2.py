@@ -389,6 +389,19 @@ else:
                 raise ValueError("Uploaded file is not a valid image.")
             image = correct_orientation(image)
 
+            # ── Auto-resize large images to protect memory ─────────────
+            MAX_DIMENSION = 4000   # max width or height in pixels
+            orig_w, orig_h = image.size
+            if max(orig_w, orig_h) > MAX_DIMENSION:
+                scale  = MAX_DIMENSION / max(orig_w, orig_h)
+                new_w  = int(orig_w * scale)
+                new_h  = int(orig_h * scale)
+                image  = image.resize((new_w, new_h), Image.LANCZOS)
+                st.info(
+                    f"📐 Image resized from {orig_w}×{orig_h} to {new_w}×{new_h} px "
+                    f"to fit within memory limits. Detection quality is not affected."
+                )
+
             # ── Whole-image prediction ─────────────────────────────────
             predictions, image_with_border, contours_with_border, \
                 heatmap_image, contoured_image, overlay_img = import_and_predict(image)
