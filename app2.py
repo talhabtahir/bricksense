@@ -153,7 +153,7 @@ def predict_tiles_batch(tiles_np, sensitivity=9):
     return pred_indices, pred_vecs, conv_outputs
 
 
-def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
+def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None, confidence_threshold=95.0):
     """
     1. Pad image so it tiles perfectly into 224×224 blocks.
     2. Run the model on each tile.
@@ -246,7 +246,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
         conf = float(pred_vec[pred_index]) * 100
 
         # If predicted as cracked but confidence < 95%, downgrade to Normal
-        if pred_index == 1 and conf < 95.0:
+        if pred_index == 1 and conf < confidence_threshold:
             pred_index = 0
 
         tile_results.append({
@@ -509,13 +509,17 @@ else:
                     "Each tile is independently classified. "
                     "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
                 )
-
+                confidence_threshold = st.slider(
+                    "🎚️ Crack Confidence Threshold (%)",
+                    min_value=10.0, max_value=99.0, value=95.0, step=1.0,
+                    help="Lower = more sensitive | Higher = more conservative"
+                )
                 run_tiled = st.button("▶ Run Tile-Based Analysis", type="primary")
 
                 if run_tiled:
                     progress_bar = st.progress(0, text="Starting tile analysis …")
                     tiled_result, tile_grid_img, contours_only_img, numbered_img, summary = tiled_crack_detection(
-                        image, sensitivity=sensitivity, progress_bar=progress_bar
+                        image, sensitivity=sensitivity, progress_bar=progress_bar, confidence_threshold=confidence_threshold
                     )
                     progress_bar.empty()
 
