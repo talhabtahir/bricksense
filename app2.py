@@ -281,7 +281,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
     # ── Image 4: numbered tile grid ────────────────────────────────────────
     numbered_canvas = padded_img.copy()
     font             = cv2.FONT_HERSHEY_SIMPLEX
-    tile_number      = 1
+    tile_number      = 0
     font_scale       = max(0.35, TILE_SIZE / 400)
     font_thickness   = max(1, int(TILE_SIZE / 150))
     for r2 in range(n_rows):
@@ -296,17 +296,19 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
                           (x0t, y0t),
                           (x0t + TILE_SIZE - 1, y0t + TILE_SIZE - 1),
                           color_rgb, 2)
-            # Draw tile number centred in tile
-            label_str  = str(tile_number)
+            # Draw tile number at top-left corner in black
+            label_str   = str(tile_number)
+            padding     = max(4, int(TILE_SIZE * 0.04))
             (tw, th), _ = cv2.getTextSize(label_str, font, font_scale, font_thickness)
-            tx = x0t + (TILE_SIZE - tw) // 2
-            ty = y0t + (TILE_SIZE + th) // 2
+            tx = x0t + padding
+            ty = y0t + th + padding
             # White shadow for readability
             cv2.putText(numbered_canvas, label_str, (tx + 1, ty + 1),
                         font, font_scale, (255, 255, 255), font_thickness + 1,
                         cv2.LINE_AA)
+            # Black text
             cv2.putText(numbered_canvas, label_str, (tx, ty),
-                        font, font_scale, color_rgb, font_thickness,
+                        font, font_scale, (0, 0, 0), font_thickness,
                         cv2.LINE_AA)
             tile_number += 1
     numbered_image = Image.fromarray(numbered_canvas[:orig_h, :orig_w])
