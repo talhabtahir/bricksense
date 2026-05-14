@@ -447,7 +447,7 @@ else:
                     st.divider()
                     confidence_threshold = st.slider(
                         "🎚️ Crack Confidence Threshold (%)",
-                        min_value=50.0, max_value=99.0, value=95.0, step=1.0,
+                        min_value=10.0, max_value=99.0, value=95.0, step=1.0,
                         help="Tiles predicted as 'Cracked' below this confidence are reclassified as Normal. "
                              "Lower = more sensitive (more tiles flagged) | Higher = more conservative."
                     )
@@ -516,11 +516,7 @@ else:
                     "Each tile is independently classified. "
                     "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
                 )
-                confidence_threshold = st.slider(
-                    "🎚️ Crack Confidence Threshold (%)",
-                    min_value=10.0, max_value=99.0, value=95.0, step=1.0,
-                    help="Lower = more sensitive | Higher = more conservative"
-                )
+            
                 run_tiled = st.button("▶ Run Tile-Based Analysis", type="primary")
 
                 if run_tiled:
