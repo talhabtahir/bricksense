@@ -195,6 +195,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
 
     tile_results = []   # list of dicts: {row, col, pred, conf}
     cracked_count = 0
+    MINI_BATCH_SIZE = 128  # process this many tiles at once to limit memory usage
 
     # ── Collect all tile coordinates and pixel data ───────────────────────────
     tile_coords = []   # (r, c, y0, y1, x0, x1)
@@ -207,16 +208,38 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
             tile_coords.append((r, c, y0, y1, x0, x1))
             tiles_np.append(padded_img[y0:y1, x0:x1])
 
-    # ── Single batch forward pass for all tiles ───────────────────────────────
-    if progress_bar is not None:
-        progress_bar.progress(0.0, text="Running batch prediction on all tiles …")
+    # ── Mini-batch forward passes ─────────────────────────────────────────────
+    # Process tiles in small groups to avoid out-of-memory on large images
+    all_pred_indices = []
+    all_pred_vecs    = []
+    all_conv_outputs = []
 
-    pred_indices, pred_vecs, conv_outputs = predict_tiles_batch(tiles_np, sensitivity)
+    for batch_start in range(0, total_tiles, MINI_BATCH_SIZE):
+        batch_end   = min(batch_start + MINI_BATCH_SIZE, total_tiles)
+        batch_tiles = tiles_np[batch_start:batch_end]
+
+        if progress_bar is not None:
+            progress_bar.progress(
+                batch_start / total_tiles,
+                text=f"Predicting tiles {batch_start + 1}–{batch_end} of {total_tiles} …"
+            )
+
+        b_pred_indices, b_pred_vecs, b_conv_outputs = predict_tiles_batch(
+            batch_tiles, sensitivity
+        )
+        all_pred_indices.extend(b_pred_indices)
+        all_pred_vecs.append(b_pred_vecs)
+        all_conv_outputs.append(b_conv_outputs)
+
+    # Concatenate results from all mini-batches
+    pred_indices = all_pred_indices
+    pred_vecs    = np.concatenate(all_pred_vecs,    axis=0)
+    conv_outputs = np.concatenate(all_conv_outputs, axis=0)
 
     # ── Post-process each tile result ─────────────────────────────────────────
     for tile_idx, (r, c, y0, y1, x0, x1) in enumerate(tile_coords):
-        pred_index = pred_indices[tile_idx]
-        pred_vec   = pred_vecs[tile_idx]
+        pred_index  = pred_indices[tile_idx]
+        pred_vec    = pred_vecs[tile_idx]
         conv_output = conv_outputs[tile_idx]   # (H, W, C)
 
         conf = float(pred_vec[pred_index]) * 100
