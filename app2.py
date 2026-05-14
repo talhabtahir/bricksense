@@ -444,6 +444,13 @@ else:
                         "Adjust Detection Sensitivity (Higher values increase detection sensitivity)",
                         min_value=0, max_value=12, value=9, step=1, format="%.1f",
                     )
+                    st.divider()
+                    confidence_threshold = st.slider(
+                        "🎚️ Crack Confidence Threshold (%)",
+                        min_value=50.0, max_value=99.0, value=95.0, step=1.0,
+                        help="Tiles predicted as 'Cracked' below this confidence are reclassified as Normal. "
+                             "Lower = more sensitive (more tiles flagged) | Higher = more conservative."
+                    )
 
                 # Re-run whole-image prediction with chosen sensitivity
                 predictions, image_with_border, contours_with_border, \
