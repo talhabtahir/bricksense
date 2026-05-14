@@ -195,7 +195,7 @@ def tiled_crack_detection(image_data, sensitivity=9, progress_bar=None):
 
     tile_results = []   # list of dicts: {row, col, pred, conf}
     cracked_count = 0
-    MINI_BATCH_SIZE = 128  # process this many tiles at once to limit memory usage
+    MINI_BATCH_SIZE = 64  # process this many tiles at once to limit memory usage
 
     # ── Collect all tile coordinates and pixel data ───────────────────────────
     tile_coords = []   # (r, c, y0, y1, x0, x1)
