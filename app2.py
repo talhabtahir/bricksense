@@ -1,6 +1,5 @@
 import io
 import math
-
 import cv2
 import matplotlib.cm as cm
 import numpy as np
@@ -10,6 +9,8 @@ from keras.models import Model
 from PIL import Image, ImageOps, ExifTags
 from streamlit_image_comparison import image_comparison
 import pandas as pd
+import gc
+import hashlib
 
 TILE_SIZE = 224  # Each tile is 224x224 pixels
 
@@ -101,7 +102,7 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
         contour_thickness = max(2, int(max_dimension / 200))
 
         img_resized  = cv2.resize(original_img, (224, 224))
-        img_tensor   = np.expand_dims(img_resized, axis=0) / 255.0
+        img_tensor   = np.expand_dims(img_resized, axis=0).astype(np.float16) / 255.0
 
         custom_model              = build_custom_model(sensitivity)
         conv2d_3_output, pred_vec = custom_model.predict(img_tensor, verbose=0)
@@ -225,7 +226,7 @@ def tiled_crack_detection(image_bytes: bytes,
             y0, y1 = r * TILE_SIZE, (r + 1) * TILE_SIZE
             x0, x1 = c * TILE_SIZE, (c + 1) * TILE_SIZE
             tile_coords.append((r, c, y0, y1, x0, x1))
-            tiles_np.append(padded_img[y0:y1, x0:x1])
+            tiles_np.append(padded_img[y0:y1, x0:x1].astype(np.float16))
 
     all_pred_indices = []
     all_pred_vecs    = []
@@ -351,6 +352,8 @@ def tiled_crack_detection(image_bytes: bytes,
         "tiles":    tile_results,
         "grid":     (n_rows, n_cols),
     }
+    tf.keras.backend.clear_session()
+    gc.collect()                           
     return result_image, tile_grid_image, contours_only_image, numbered_image, summary
 
 
@@ -390,7 +393,7 @@ if file is None:
     st.info("Please upload an image file to start the detection.")
 else:
     image_bytes = file.getvalue()
-    image_hash  = hash(image_bytes)
+    image_hash = hashlib.md5(image_bytes).hexdigest()
 
     # ── Reset everything when a new image is uploaded ──────────────────
     if st.session_state["last_image_hash"] != image_hash:
@@ -606,6 +609,7 @@ else:
                     use_ensemble=use_ensemble,
                     ensemble_levels=ensemble_levels,
                 )
+                gc.collect()
             st.session_state["tile_results"]      = tile_output
             st.session_state["run_sensitivity"]   = sensitivity
             st.session_state["run_confidence"]    = confidence_threshold
