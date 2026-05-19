@@ -28,7 +28,7 @@ def load_model():
         return None
 
 
-@st.cache_resource          # ← FIX 1: build once per (sensitivity) value, reuse forever
+@st.cache_resource
 def build_custom_model(sensitivity: int):
     """Return a two-output Model cached by sensitivity level."""
     model = load_model()
@@ -85,7 +85,7 @@ def add_white_border(image, border_size):
 # Whole-image prediction
 # ══════════════════════════════════════════════
 
-@st.cache_data(show_spinner=False)   # ← FIX 2: cache by (image_bytes, sensitivity)
+@st.cache_data(show_spinner=False)
 def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
     """
     Accepts raw image bytes so that st.cache_data can hash the input reliably.
@@ -93,7 +93,7 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
              heatmap_image, contoured_image, overlay_img)
     """
     try:
-        image_data = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image_data   = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         original_img = np.array(image_data)
 
         orig_height, orig_width, _ = original_img.shape
@@ -103,11 +103,9 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
         img_resized  = cv2.resize(original_img, (224, 224))
         img_tensor   = np.expand_dims(img_resized, axis=0) / 255.0
 
-        custom_model = build_custom_model(sensitivity)
+        custom_model              = build_custom_model(sensitivity)
         conv2d_3_output, pred_vec = custom_model.predict(img_tensor, verbose=0)
-        conv2d_3_output = np.squeeze(conv2d_3_output)
-
-        pred = np.argmax(pred_vec)
+        conv2d_3_output           = np.squeeze(conv2d_3_output)
 
         heat_map_resized = cv2.resize(conv2d_3_output, (orig_width, orig_height),
                                       interpolation=cv2.INTER_LINEAR)
@@ -115,10 +113,9 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
         heat_map = np.maximum(heat_map, 0)
         heat_map = heat_map / heat_map.max()
 
-        threshold     = 0.5
         heat_map_thresh = np.uint8(255 * heat_map)
-        _, thresh_map = cv2.threshold(heat_map_thresh, int(255 * threshold), 255, cv2.THRESH_BINARY)
-        contours, _   = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        _, thresh_map   = cv2.threshold(heat_map_thresh, int(255 * 0.5), 255, cv2.THRESH_BINARY)
+        contours, _     = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         heatmap_colored = np.uint8(255 * cm.jet(heat_map)[:, :, :3])
         heatmap_image   = Image.fromarray(heatmap_colored)
@@ -151,30 +148,23 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
 # ══════════════════════════════════════════════
 
 def predict_tiles_batch(tiles_np, sensitivity=9):
-    """
-    Run the model on a batch of 224×224 tiles in a single forward pass.
-    tiles_np : list of np.ndarray, each (224, 224, 3)
-    """
-    batch = np.stack(tiles_np, axis=0) / 255.0
-    custom_model = build_custom_model(sensitivity)          # ← reuses cached model
+    batch        = np.stack(tiles_np, axis=0) / 255.0
+    custom_model = build_custom_model(sensitivity)
     conv_outputs, pred_vecs = custom_model.predict(batch, verbose=0)
     pred_indices = [int(np.argmax(pv)) for pv in pred_vecs]
     return pred_indices, pred_vecs, conv_outputs
 
 
 def ensemble_predict_tiles(tiles_np, sensitivity_levels=(7, 9, 11)):
-    """
-    Soft-voting ensemble across multiple sensitivity levels.
-    The batch tensor is built once, outside the loop.            ← FIX 3
-    """
-    batch       = np.stack(tiles_np, axis=0) / 255.0           # ← built ONCE
-    mid_idx     = len(sensitivity_levels) // 2
+    """Soft-voting ensemble. Batch tensor is built once outside the loop."""
+    batch               = np.stack(tiles_np, axis=0) / 255.0   # built ONCE
+    mid_idx             = len(sensitivity_levels) // 2
     all_pred_vecs       = []
     middle_conv_outputs = None
 
     for i, sens in enumerate(sensitivity_levels):
-        custom_model = build_custom_model(sens)                 # ← reuses cached model
-        conv_outputs, pred_vecs = custom_model.predict(batch, verbose=0)
+        custom_model             = build_custom_model(sens)     # reuses cached model
+        conv_outputs, pred_vecs  = custom_model.predict(batch, verbose=0)
         all_pred_vecs.append(pred_vecs)
         if i == mid_idx:
             middle_conv_outputs = conv_outputs
@@ -188,30 +178,28 @@ def ensemble_predict_tiles(tiles_np, sensitivity_levels=(7, 9, 11)):
 # Tile-based crack detection  (main function)
 # ══════════════════════════════════════════════
 
-@st.cache_data(show_spinner=False)   # ← FIX 4: cache full tile analysis
+@st.cache_data(show_spinner=False)
 def tiled_crack_detection(image_bytes: bytes,
                            sensitivity: int = 9,
                            confidence_threshold: float = 95.0,
                            use_ensemble: bool = False,
                            ensemble_levels: tuple = (7, 9, 11)):
     """
-    Accepts raw image bytes + hashable parameters so st.cache_data works correctly.
+    All parameters are hashable so st.cache_data works correctly.
     Returns (result_image, tile_grid_image, contours_only_image, numbered_image, summary).
     """
-    image_data = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-
+    image_data   = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     original_img = np.array(image_data)
     orig_h, orig_w, _ = original_img.shape
 
-    # ── Pad to a multiple of TILE_SIZE ────────────────────────────────────
     pad_h = (TILE_SIZE - orig_h % TILE_SIZE) % TILE_SIZE
     pad_w = (TILE_SIZE - orig_w % TILE_SIZE) % TILE_SIZE
     padded_img = cv2.copyMakeBorder(original_img, 0, pad_h, 0, pad_w,
                                     cv2.BORDER_REFLECT)
     pad_h_total, pad_w_total = padded_img.shape[:2]
 
-    n_rows = pad_h_total // TILE_SIZE
-    n_cols = pad_w_total // TILE_SIZE
+    n_rows      = pad_h_total // TILE_SIZE
+    n_cols      = pad_w_total // TILE_SIZE
     total_tiles = n_rows * n_cols
 
     contour_thickness = max(2, int(max(orig_w, orig_h) / 200))
@@ -226,13 +214,12 @@ def tiled_crack_detection(image_bytes: bytes,
     }
     CLASS_LABELS = {0: "Normal", 1: "Cracked", 2: "Not a Wall"}
 
-    tile_results  = []
-    cracked_count = 0
+    tile_results    = []
+    cracked_count   = 0
     MINI_BATCH_SIZE = 64
 
     tile_coords = []
     tiles_np    = []
-
     for r in range(n_rows):
         for c in range(n_cols):
             y0, y1 = r * TILE_SIZE, (r + 1) * TILE_SIZE
@@ -250,7 +237,7 @@ def tiled_crack_detection(image_bytes: bytes,
 
         if use_ensemble:
             b_pred_indices, b_pred_vecs, b_conv_outputs = ensemble_predict_tiles(
-                batch_tiles, sensitivity_levels=tuple(ensemble_levels)
+                batch_tiles, sensitivity_levels=ensemble_levels
             )
         else:
             b_pred_indices, b_pred_vecs, b_conv_outputs = predict_tiles_batch(
@@ -271,7 +258,6 @@ def tiled_crack_detection(image_bytes: bytes,
         conv_output = conv_outputs[tile_idx]
 
         conf = float(pred_vec[pred_index]) * 100
-
         if pred_index == 1 and conf < confidence_threshold:
             pred_index = 0
 
@@ -284,16 +270,15 @@ def tiled_crack_detection(image_bytes: bytes,
         })
 
         color_bgr = CLASS_COLORS_BGR[pred_index]
-        alpha = 0.35
+        alpha     = 0.35
         tile_grid_overlay[y0:y1, x0:x1] = (
             (1 - alpha) * tile_grid_overlay[y0:y1, x0:x1].astype(np.float32)
             + alpha * np.array(color_bgr[::-1], dtype=np.float32)
         )
 
-        cv2.rectangle(output_canvas, (x0, y0), (x1 - 1, y1 - 1),
-                      color_bgr[::-1], 2)
-        cv2.rectangle(tile_grid_overlay.astype(np.uint8), (x0, y0),
-                      (x1 - 1, y1 - 1), color_bgr[::-1], 2)
+        cv2.rectangle(output_canvas, (x0, y0), (x1 - 1, y1 - 1), color_bgr[::-1], 2)
+        cv2.rectangle(tile_grid_overlay.astype(np.uint8),
+                      (x0, y0), (x1 - 1, y1 - 1), color_bgr[::-1], 2)
 
         if pred_index == 1:
             cracked_count += 1
@@ -301,16 +286,12 @@ def tiled_crack_detection(image_bytes: bytes,
             heat = np.maximum(heat, 0)
             if heat.max() > 0:
                 heat = heat / heat.max()
-            heat_resized  = cv2.resize(heat, (TILE_SIZE, TILE_SIZE),
-                                       interpolation=cv2.INTER_LINEAR)
+            heat_resized  = cv2.resize(heat, (TILE_SIZE, TILE_SIZE), interpolation=cv2.INTER_LINEAR)
             heat_uint8    = np.uint8(255 * heat_resized)
-            _, thresh_map = cv2.threshold(heat_uint8, int(255 * 0.5),
-                                          255, cv2.THRESH_BINARY)
-            contours, _   = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL,
-                                              cv2.CHAIN_APPROX_SIMPLE)
+            _, thresh_map = cv2.threshold(heat_uint8, int(255 * 0.5), 255, cv2.THRESH_BINARY)
+            contours, _   = cv2.findContours(thresh_map, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             shifted = [cnt + np.array([[[x0, y0]]]) for cnt in contours]
-            cv2.drawContours(output_canvas, shifted, -1,
-                             (255, 0, 0), contour_thickness)
+            cv2.drawContours(output_canvas, shifted, -1, (255, 0, 0), contour_thickness)
 
     # ── Contours-only image ───────────────────────────────────────────────
     contours_only_canvas = padded_img.copy()
@@ -322,16 +303,12 @@ def tiled_crack_detection(image_bytes: bytes,
             heat2     = np.maximum(heat2, 0)
             if heat2.max() > 0:
                 heat2 = heat2 / heat2.max()
-            heat2_resized = cv2.resize(heat2, (TILE_SIZE, TILE_SIZE),
-                                       interpolation=cv2.INTER_LINEAR)
+            heat2_resized = cv2.resize(heat2, (TILE_SIZE, TILE_SIZE), interpolation=cv2.INTER_LINEAR)
             heat2_uint8   = np.uint8(255 * heat2_resized)
-            _, thresh2    = cv2.threshold(heat2_uint8, int(255 * 0.5),
-                                          255, cv2.THRESH_BINARY)
-            contours2, _  = cv2.findContours(thresh2, cv2.RETR_EXTERNAL,
-                                              cv2.CHAIN_APPROX_SIMPLE)
+            _, thresh2    = cv2.threshold(heat2_uint8, int(255 * 0.5), 255, cv2.THRESH_BINARY)
+            contours2, _  = cv2.findContours(thresh2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
             shifted2 = [cnt + np.array([[[x0t, y0t]]]) for cnt in contours2]
-            cv2.drawContours(contours_only_canvas, shifted2, -1,
-                             (255, 0, 0), contour_thickness)
+            cv2.drawContours(contours_only_canvas, shifted2, -1, (255, 0, 0), contour_thickness)
     contours_only_image = Image.fromarray(contours_only_canvas[:orig_h, :orig_w])
 
     # ── Numbered tile grid ────────────────────────────────────────────────
@@ -349,8 +326,7 @@ def tiled_crack_detection(image_bytes: bytes,
             color_bgr = CLASS_COLORS_BGR[t_info["pred"]]
             color_rgb = color_bgr[::-1]
             cv2.rectangle(numbered_canvas,
-                          (x0t, y0t),
-                          (x0t + TILE_SIZE - 1, y0t + TILE_SIZE - 1),
+                          (x0t, y0t), (x0t + TILE_SIZE - 1, y0t + TILE_SIZE - 1),
                           color_rgb, 2)
             label_str   = str(tile_number)
             padding     = max(4, int(TILE_SIZE * 0.04))
@@ -365,9 +341,7 @@ def tiled_crack_detection(image_bytes: bytes,
     numbered_image = Image.fromarray(numbered_canvas[:orig_h, :orig_w])
 
     result_image    = Image.fromarray(output_canvas[:orig_h, :orig_w])
-    tile_grid_image = Image.fromarray(
-        tile_grid_overlay.astype(np.uint8)[:orig_h, :orig_w]
-    )
+    tile_grid_image = Image.fromarray(tile_grid_overlay.astype(np.uint8)[:orig_h, :orig_w])
 
     summary = {
         "total":    total_tiles,
@@ -386,15 +360,14 @@ def tiled_crack_detection(image_bytes: bytes,
 
 def init_session_state():
     defaults = {
-        "whole_image_results": None,   # (pred_vec, img_border, contours_border,
-                                       #  heatmap, contoured, overlay)
-        "tile_results":        None,   # (result_img, grid_img, contours_only,
-                                       #  numbered_img, summary)
-        "last_image_hash":     None,   # detect when a new file is uploaded
-        "last_sensitivity":    None,
-        "last_confidence":     None,
-        "last_ensemble":       None,
-        "last_ensemble_lvls":  None,
+        "whole_image_results":  None,   # cached whole-image output tuple
+        "tile_results":         None,   # cached tile output tuple
+        "last_image_hash":      None,   # detect new file upload
+        # Settings snapshot at the time of the LAST run — for stale detection
+        "run_sensitivity":      None,
+        "run_confidence":       None,
+        "run_ensemble":         None,
+        "run_ensemble_lvls":    None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -416,14 +389,17 @@ file = st.file_uploader(
 if file is None:
     st.info("Please upload an image file to start the detection.")
 else:
-    # ── Read raw bytes once; use as stable cache key ───────────────────
     image_bytes = file.getvalue()
     image_hash  = hash(image_bytes)
 
-    # Reset stored results when a new image is uploaded
+    # ── Reset everything when a new image is uploaded ──────────────────
     if st.session_state["last_image_hash"] != image_hash:
         st.session_state["whole_image_results"] = None
         st.session_state["tile_results"]        = None
+        st.session_state["run_sensitivity"]     = None
+        st.session_state["run_confidence"]      = None
+        st.session_state["run_ensemble"]        = None
+        st.session_state["run_ensemble_lvls"]   = None
         st.session_state["last_image_hash"]     = image_hash
 
     try:
@@ -444,12 +420,13 @@ else:
                 f"📐 Image resized from {orig_w}×{orig_h} to {new_w}×{new_h} px "
                 f"to fit within memory limits."
             )
-            # Rebuild bytes after resize so all caches use the resized version
             buf = io.BytesIO()
             image.save(buf, format="PNG")
             image_bytes = buf.getvalue()
 
-        # ── Settings expander (read before running anything) ───────────
+        # ══════════════════════════════════════════════════════════════
+        # Settings expander — only reads values, NEVER triggers inference
+        # ══════════════════════════════════════════════════════════════
         with st.expander("🔍 Sensitivity Settings"):
             sensitivity = st.slider(
                 "Adjust Detection Sensitivity (Higher = more sensitive)",
@@ -470,228 +447,247 @@ else:
                 value=False,
             )
             if use_ensemble:
-                ensemble_levels = st.multiselect(
+                ensemble_levels = tuple(sorted(st.multiselect(
                     "Sensitivity levels to ensemble",
                     options=list(range(0, 13)),
                     default=[7, 9, 11],
                     help="Select at least 2 levels.",
-                )
+                )))
                 if len(ensemble_levels) < 2:
                     st.warning("⚠️ Please select at least 2 sensitivity levels.")
-                    use_ensemble = False
+                    use_ensemble   = False
+                    ensemble_levels = ()    # empty tuple — ensemble effectively off
             else:
-                ensemble_levels = [sensitivity]
+                # FIX: keep empty; do NOT set to [sensitivity].
+                # Prevents sensitivity slider changes from falsely triggering
+                # stale warnings when ensemble mode is off.
+                ensemble_levels = ()
 
-        # ── FIX 5: "Apply" button controls whole-image re-inference ───
-        #    Sliders just store values; inference only runs on button click.
+        # ══════════════════════════════════════════════════════════════
+        # Whole-image analysis — ONLY runs on explicit button click
+        # ══════════════════════════════════════════════════════════════
         run_whole = st.button("🔬 Run / Refresh Whole-Image Analysis", type="secondary")
 
-        if run_whole or st.session_state["whole_image_results"] is None:
+        # FIX: removed automatic `or results is None` trigger.
+        # Nothing runs until the user explicitly clicks the button.
+        if run_whole:
             with st.spinner("Running whole-image analysis…"):
                 results = import_and_predict(image_bytes, sensitivity)
             st.session_state["whole_image_results"] = results
-            st.session_state["last_sensitivity"]    = sensitivity
+            st.session_state["run_sensitivity"]     = sensitivity
+            st.session_state["run_ensemble"]        = use_ensemble
+            st.session_state["run_ensemble_lvls"]   = ensemble_levels
 
-        # ── Unpack stored results ──────────────────────────────────────
-        (predictions, image_with_border, contours_with_border,
-         heatmap_image, contoured_image, overlay_img) = st.session_state["whole_image_results"]
-
-        if predictions is not None:
-            predicted_class        = np.argmax(predictions)
-            prediction_percentages = predictions[0] * 100
-
-            if predicted_class == 0:
-                st.success("✅ This is a normal brick wall.")
-            elif predicted_class == 1:
-                st.error("❌ This wall is a cracked brick wall.")
-            elif predicted_class == 2:
-                st.warning("⚠️ This is not a brick wall.")
-            else:
-                st.error(f"❓ Unknown prediction result: {predicted_class}")
-
-            st.write("**Prediction Percentages:**")
-            st.markdown(f"""
-                <div style="display: flex; justify-content: space-between; font-size: 14px;
-                            color: #e0e0e0; background-color: #808080; padding: 3px; border-radius: 9px;">
-                    <div style="text-align: center; flex: 1;">
-                        🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%
-                    </div>
-                    <div style="text-align: center; flex: 1;">
-                        🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%
-                    </div>
-                    <div style="text-align: center; flex: 1;">
-                        🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%
-                    </div>
-                </div>
-            """, unsafe_allow_html=True)
-
-            st.write("")
-
-            # ── Whole-image results row ────────────────────────────────
-            st.subheader("🔎 Whole-Image Analysis")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.image(image, caption="Uploaded Image", use_container_width=True)
-            with col2:
-                if predicted_class == 1:
-                    st.image(contoured_image, caption="Crack(s) Location", use_container_width=True)
-                else:
-                    st.image(image,
-                             caption="No cracks detected" if predicted_class == 0 else "No wall detected",
-                             use_container_width=True)
-            with col3:
-                if predicted_class == 1:
-                    st.image(heatmap_image, caption="Crack(s) Heatmap", use_container_width=True)
-                else:
-                    st.image(image,
-                             caption="No cracks detected" if predicted_class == 0 else "No wall detected",
-                             use_container_width=True)
-            with col4:
-                if predicted_class == 1:
-                    st.image(overlay_img, caption="Crack(s) Localization", use_container_width=True)
-                else:
-                    st.image(image,
-                             caption="No cracks detected" if predicted_class == 0 else "No wall detected",
-                             use_container_width=True)
-
-            # ── Before / after slider ──────────────────────────────────
-            image_with_border    = add_canvas(image_with_border)
-            contours_with_border = add_canvas(contours_with_border)
-            st.write("")
-            if st.checkbox("Original vs Cracked Slider"):
-                st.markdown(
-                    "<style>.centered-image-container{display:flex;justify-content:center;}"
-                    "</style><div class='centered-image-container'>",
-                    unsafe_allow_html=True,
+        # ── Stale warning for whole-image results ──────────────────────
+        if st.session_state["whole_image_results"] is not None:
+            whole_stale = (
+                st.session_state["run_sensitivity"] != sensitivity
+                or st.session_state["run_ensemble"] != use_ensemble
+                # FIX: only compare ensemble_levels when ensemble is actually ON
+                or (use_ensemble and st.session_state["run_ensemble_lvls"] != ensemble_levels)
+            )
+            if whole_stale:
+                st.warning(
+                    "⚠️ Settings have changed since the last whole-image analysis. "
+                    "Click **🔬 Run / Refresh Whole-Image Analysis** to update."
                 )
-                if predicted_class == 1:
-                    image_comparison(
-                        img1=image_with_border, img2=contours_with_border,
-                        label1="Uploaded Image", label2="Cracks Localization",
-                        show_labels=False,
-                    )
+
+        # ── Prompt if no results yet ───────────────────────────────────
+        if st.session_state["whole_image_results"] is None:
+            st.info("Click **🔬 Run / Refresh Whole-Image Analysis** to analyse the uploaded image.")
+        else:
+            (predictions, image_with_border, contours_with_border,
+             heatmap_image, contoured_image, overlay_img) = st.session_state["whole_image_results"]
+
+            if predictions is not None:
+                predicted_class        = np.argmax(predictions)
+                prediction_percentages = predictions[0] * 100
+
+                if predicted_class == 0:
+                    st.success("✅ This is a normal brick wall.")
+                elif predicted_class == 1:
+                    st.error("❌ This wall is a cracked brick wall.")
+                elif predicted_class == 2:
+                    st.warning("⚠️ This is not a brick wall.")
                 else:
-                    image_comparison(
-                        img1=image_with_border, img2=image_with_border,
-                        label1="Uploaded Image", label2="Cracks Localization",
-                        show_labels=False,
-                    )
-                st.markdown("</div>", unsafe_allow_html=True)
+                    st.error(f"❓ Unknown prediction result: {predicted_class}")
 
-            # ══════════════════════════════════════════════════════════
-            # Tile-based section
-            # ══════════════════════════════════════════════════════════
-            st.divider()
-            st.subheader("🧩 Tile-Based Segment Analysis (224 × 224 px tiles)")
-            st.caption(
-                "The image is divided into 224 × 224 pixel tiles. "
-                "Each tile is independently classified. "
-                "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
+                st.write("**Prediction Percentages:**")
+                st.markdown(f"""
+                    <div style="display:flex;justify-content:space-between;font-size:14px;
+                                color:#e0e0e0;background-color:#808080;padding:3px;border-radius:9px;">
+                        <div style="text-align:center;flex:1;">
+                            🟢 <strong>Normal Wall:</strong> {prediction_percentages[0]:.2f}%
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            🔴 <strong>Cracked Wall:</strong> {prediction_percentages[1]:.2f}%
+                        </div>
+                        <div style="text-align:center;flex:1;">
+                            🟠 <strong>Not a Wall:</strong> {prediction_percentages[2]:.2f}%
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+
+                st.write("")
+                st.subheader("🔎 Whole-Image Analysis")
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.image(image, caption="Uploaded Image", use_container_width=True)
+                with col2:
+                    if predicted_class == 1:
+                        st.image(contoured_image, caption="Crack(s) Location", use_container_width=True)
+                    else:
+                        st.image(image,
+                                 caption="No cracks detected" if predicted_class == 0 else "No wall detected",
+                                 use_container_width=True)
+                with col3:
+                    if predicted_class == 1:
+                        st.image(heatmap_image, caption="Crack(s) Heatmap", use_container_width=True)
+                    else:
+                        st.image(image,
+                                 caption="No cracks detected" if predicted_class == 0 else "No wall detected",
+                                 use_container_width=True)
+                with col4:
+                    if predicted_class == 1:
+                        st.image(overlay_img, caption="Crack(s) Localization", use_container_width=True)
+                    else:
+                        st.image(image,
+                                 caption="No cracks detected" if predicted_class == 0 else "No wall detected",
+                                 use_container_width=True)
+
+                # ── Before / after slider ──────────────────────────────
+                image_with_border    = add_canvas(image_with_border)
+                contours_with_border = add_canvas(contours_with_border)
+                st.write("")
+                if st.checkbox("Original vs Cracked Slider"):
+                    st.markdown(
+                        "<style>.centered-image-container{display:flex;justify-content:center;}"
+                        "</style><div class='centered-image-container'>",
+                        unsafe_allow_html=True,
+                    )
+                    if predicted_class == 1:
+                        image_comparison(
+                            img1=image_with_border, img2=contours_with_border,
+                            label1="Uploaded Image", label2="Cracks Localization",
+                            show_labels=False,
+                        )
+                    else:
+                        image_comparison(
+                            img1=image_with_border, img2=image_with_border,
+                            label1="Uploaded Image", label2="Cracks Localization",
+                            show_labels=False,
+                        )
+                    st.markdown("</div>", unsafe_allow_html=True)
+
+        # ══════════════════════════════════════════════════════════════
+        # Tile-based section
+        # ══════════════════════════════════════════════════════════════
+        st.divider()
+        st.subheader("🧩 Tile-Based Segment Analysis (224 × 224 px tiles)")
+        st.caption(
+            "The image is divided into 224 × 224 pixel tiles. "
+            "Each tile is independently classified. "
+            "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
+        )
+
+        run_tiled = st.button("▶ Run Tile-Based Analysis", type="primary")
+
+        if run_tiled:
+            if use_ensemble:
+                st.info(
+                    f"🧪 Ensemble mode active — averaging predictions across "
+                    f"sensitivity levels: {sorted(ensemble_levels)}"
+                )
+            with st.spinner("Running tile analysis … this may take a moment."):
+                tile_output = tiled_crack_detection(
+                    image_bytes,
+                    sensitivity=sensitivity,
+                    confidence_threshold=confidence_threshold,
+                    use_ensemble=use_ensemble,
+                    ensemble_levels=ensemble_levels,
+                )
+            st.session_state["tile_results"]      = tile_output
+            st.session_state["run_sensitivity"]   = sensitivity
+            st.session_state["run_confidence"]    = confidence_threshold
+            st.session_state["run_ensemble"]      = use_ensemble
+            st.session_state["run_ensemble_lvls"] = ensemble_levels
+
+        # ── Stale warning for tile results ─────────────────────────────
+        if st.session_state["tile_results"] is not None:
+            tile_stale = (
+                st.session_state["run_sensitivity"] != sensitivity
+                or st.session_state["run_confidence"] != confidence_threshold
+                or st.session_state["run_ensemble"]   != use_ensemble
+                # FIX: only compare ensemble_levels when ensemble is actually ON
+                or (use_ensemble and st.session_state["run_ensemble_lvls"] != ensemble_levels)
             )
-
-            run_tiled = st.button("▶ Run Tile-Based Analysis", type="primary")
-
-            # ── FIX 6: invalidate stored tile results when settings change ──
-            settings_changed = (
-                st.session_state["last_confidence"]    != confidence_threshold
-                or st.session_state["last_ensemble"]   != use_ensemble
-                or st.session_state["last_ensemble_lvls"] != tuple(ensemble_levels)
-                or st.session_state["last_sensitivity"] != sensitivity
-            )
-            if settings_changed:
-                # Don't wipe the results yet — just flag them as stale so the
-                # user knows they need to re-run.  We only wipe on explicit run.
-                pass
-
-            if run_tiled:
-                # Persist current settings
-                st.session_state["last_confidence"]   = confidence_threshold
-                st.session_state["last_ensemble"]     = use_ensemble
-                st.session_state["last_ensemble_lvls"] = tuple(ensemble_levels)
-                st.session_state["last_sensitivity"]  = sensitivity
-
-                if use_ensemble:
-                    st.info(
-                        f"🧪 Ensemble mode active — averaging predictions across "
-                        f"sensitivity levels: {sorted(ensemble_levels)}"
-                    )
-
-                with st.spinner("Running tile analysis … this may take a moment."):
-                    tile_output = tiled_crack_detection(
-                        image_bytes,
-                        sensitivity=sensitivity,
-                        confidence_threshold=confidence_threshold,
-                        use_ensemble=use_ensemble,
-                        ensemble_levels=tuple(ensemble_levels),
-                    )
-                st.session_state["tile_results"] = tile_output
-
-            # ── Show stale-results warning ─────────────────────────────
-            if st.session_state["tile_results"] is not None and settings_changed:
+            if tile_stale:
                 st.warning(
                     "⚠️ Settings have changed since the last tile analysis. "
                     "Click **▶ Run Tile-Based Analysis** to update the results."
                 )
 
-            # ── Display stored tile results ────────────────────────────
-            if st.session_state["tile_results"] is not None:
-                tiled_result, tile_grid_img, contours_only_img, numbered_img, summary = \
-                    st.session_state["tile_results"]
+        # ── Prompt if no tile results yet ──────────────────────────────
+        if st.session_state["tile_results"] is None:
+            st.info("Click **▶ Run Tile-Based Analysis** to run tile-based crack detection.")
+        else:
+            tiled_result, tile_grid_img, contours_only_img, numbered_img, summary = \
+                st.session_state["tile_results"]
 
-                m1, m2, m3, m4 = st.columns(4)
-                m1.metric("Total Tiles",   summary["total"])
-                m2.metric("🔴 Cracked",    summary["cracked"],
-                          delta=f"{summary['cracked'] / summary['total'] * 100:.1f}%",
-                          delta_color="inverse")
-                m3.metric("🟢 Normal",     summary["normal"])
-                m4.metric("🟠 Not a Wall", summary["not_wall"])
+            m1, m2, m3, m4 = st.columns(4)
+            m1.metric("Total Tiles",   summary["total"])
+            m2.metric("🔴 Cracked",    summary["cracked"],
+                      delta=f"{summary['cracked'] / summary['total'] * 100:.1f}%",
+                      delta_color="inverse")
+            m3.metric("🟢 Normal",     summary["normal"])
+            m4.metric("🟠 Not a Wall", summary["not_wall"])
 
-                cracked_pct = summary["cracked"] / summary["total"] * 100
-                if summary["cracked"] == 0:
-                    st.success("✅ No cracked tiles detected across the entire image.")
-                elif cracked_pct < 25:
-                    st.warning(f"⚠️ Minor cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
-                elif cracked_pct < 60:
-                    st.error(f"❌ Moderate cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
-                else:
-                    st.error(f"🚨 Severe cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
+            cracked_pct = summary["cracked"] / summary["total"] * 100
+            if summary["cracked"] == 0:
+                st.success("✅ No cracked tiles detected across the entire image.")
+            elif cracked_pct < 25:
+                st.warning(f"⚠️ Minor cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
+            elif cracked_pct < 60:
+                st.error(f"❌ Moderate cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
+            else:
+                st.error(f"🚨 Severe cracking detected: {cracked_pct:.1f}% of tiles are cracked.")
 
-                st.write("")
-                tc1, tc2 = st.columns(2)
-                with tc1:
-                    st.image(tile_grid_img,
-                             caption="Tile Grid — colour-coded by class",
-                             use_container_width=True)
-                with tc2:
-                    st.image(tiled_result,
-                             caption="Contour lines drawn in cracked tiles",
-                             use_container_width=True)
+            st.write("")
+            tc1, tc2 = st.columns(2)
+            with tc1:
+                st.image(tile_grid_img,
+                         caption="Tile Grid — colour-coded by class",
+                         use_container_width=True)
+            with tc2:
+                st.image(tiled_result,
+                         caption="Contour lines drawn in cracked tiles",
+                         use_container_width=True)
 
-                st.write("")
-                tc3, tc4 = st.columns(2)
-                with tc3:
-                    st.image(contours_only_img,
-                             caption="Crack contours on original image (no tinting)",
-                             use_container_width=True)
-                with tc4:
-                    st.image(numbered_img,
-                             caption="Numbered tiles (colour = predicted class)",
-                             use_container_width=True)
+            st.write("")
+            tc3, tc4 = st.columns(2)
+            with tc3:
+                st.image(contours_only_img,
+                         caption="Crack contours on original image (no tinting)",
+                         use_container_width=True)
+            with tc4:
+                st.image(numbered_img,
+                         caption="Numbered tiles (colour = predicted class)",
+                         use_container_width=True)
 
-                with st.expander("📋 Tile-by-Tile Results"):
-                    df = pd.DataFrame(summary["tiles"])
-                    df.columns = ["Row", "Col", "Pred Index", "Label", "Confidence (%)"]
-                    df["Confidence (%)"] = df["Confidence (%)"].round(2)
+            with st.expander("📋 Tile-by-Tile Results"):
+                df = pd.DataFrame(summary["tiles"])
+                df.columns = ["Row", "Col", "Pred Index", "Label", "Confidence (%)"]
+                df["Confidence (%)"] = df["Confidence (%)"].round(2)
 
-                    def highlight_cracked(row):
-                        if row["Label"] == "Cracked":
-                            return ["background-color: #ffe0e0"] * len(row)
-                        return [""] * len(row)
+                def highlight_cracked(row):
+                    if row["Label"] == "Cracked":
+                        return ["background-color: #ffe0e0"] * len(row)
+                    return [""] * len(row)
 
-                    st.dataframe(
-                        df.style.apply(highlight_cracked, axis=1),
-                        use_container_width=True,
-                    )
+                st.dataframe(
+                    df.style.apply(highlight_cracked, axis=1),
+                    use_container_width=True,
+                )
 
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
