@@ -206,7 +206,7 @@ def tiled_crack_detection(image_bytes: bytes,
     contour_thickness = max(2, int(max(orig_w, orig_h) / 200))
 
     output_canvas     = padded_img.copy()
-    tile_grid_overlay = padded_img.copy().astype(np.float32)
+    tile_grid_overlay = padded_img.copy().astype(np.float16)
 
     CLASS_COLORS_BGR = {
         0: (0,   200,  0),
@@ -217,7 +217,7 @@ def tiled_crack_detection(image_bytes: bytes,
 
     tile_results    = []
     cracked_count   = 0
-    MINI_BATCH_SIZE = 64
+    MINI_BATCH_SIZE = 32
 
     tile_coords = []
     tiles_np    = []
