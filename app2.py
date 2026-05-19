@@ -217,7 +217,7 @@ def tiled_crack_detection(image_bytes: bytes,
 
     tile_results    = []
     cracked_count   = 0
-    MINI_BATCH_SIZE = 32
+    MINI_BATCH_SIZE = 8
 
     tile_coords = []
     tiles_np    = []
