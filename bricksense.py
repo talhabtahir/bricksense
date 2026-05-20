@@ -1,7 +1,6 @@
 import streamlit as st
 from PIL import Image
-import subprocess
-import sys
+
 # Shared Sidebar and Branding
 st.set_page_config(
     page_title="Brick Sense",
@@ -63,8 +62,8 @@ if app_mode == "Predict Brick Properties":
     exec(open("app1.py").read())
 
 elif app_mode == "Detect Brick Wall Cracks":
-    # exec(open("app2.py").read())
-    subprocess.run([sys.executable, '-m', 'streamlit', 'run', 'app2.py'])
+    exec(open("app2.py").read())
+    
 
 # Common Footer
 st.markdown("""
