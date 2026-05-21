@@ -487,7 +487,7 @@ init_session_state()
 # Main Streamlit UI
 # ══════════════════════════════════════════════
 
-st.set_page_config(page_title="Crack Detection", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Crack Detection", layout="centered", initial_sidebar_state="expanded")
 
 # Memory monitoring in sidebar
 with st.sidebar:
