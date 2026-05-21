@@ -197,14 +197,15 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
         cv2.drawContours(heatmap_overlay_rgb_np, contours, -1, (0, 0, 0), contour_thickness)
         overlay_img = Image.fromarray(heatmap_overlay_rgb_np)
         
-        del heatmap_image_rgba, original_img_pil, heatmap_overlay, heatmap_overlay_rgb_np
+        # Don't delete overlay_img yet - we need to return it
+        del heatmap_image_rgba, original_img_pil, heatmap_overlay, heatmap_overlay_rgb_np, heat_map
 
         # Add borders for display
         border_size          = 10
         image_with_border    = add_white_border(Image.fromarray(original_img), border_size)
         contours_with_border = add_white_border(overlay_img, border_size)
         
-        del original_img, overlay_img  # Clean up original arrays
+        del original_img  # Clean up original array
 
         aggressive_cleanup()
         return pred_vec, image_with_border, contours_with_border, heatmap_image, contoured_image, overlay_img
