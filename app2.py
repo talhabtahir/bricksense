@@ -695,7 +695,7 @@ else:
         st.subheader("🧩 Tile-Based Segment Analysis (224 × 224 px tiles)")
         st.caption(
             "The image is divided into 224 × 224 pixel tiles. "
-            "Each tile is independently classified. "
+            "Each tile is independently classified.\n "
             "🟢 Green = Normal  |  🔴 Red = Cracked  |  🟠 Orange = Not a wall"
         )
 
