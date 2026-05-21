@@ -230,7 +230,7 @@ def predict_tiles_batch(tiles_np, sensitivity=9):
     return pred_indices, pred_vecs, conv_outputs
 
 
-def ensemble_predict_tiles(tiles_np, sensitivity_levels=(7, 9, 11)):
+def ensemble_predict_tiles(tiles_np, sensitivity_levels=(0, 4, 9, 10)):
     """Soft-voting ensemble with memory optimization."""
     batch               = np.stack(tiles_np, axis=0).astype(np.float32) / 255.0
     mid_idx             = len(sensitivity_levels) // 2
@@ -566,7 +566,7 @@ else:
                 ensemble_levels = tuple(sorted(st.multiselect(
                     "Sensitivity levels to ensemble",
                     options=list(range(0, 13)),
-                    default=[7, 9, 11],
+                    default=[0, 4, 9, 10],
                     help="Select at least 2 levels.",
                 )))
                 if len(ensemble_levels) < 2:
