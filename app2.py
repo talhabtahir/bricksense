@@ -586,6 +586,7 @@ else:
                 results = import_and_predict(image_bytes, sensitivity)
             st.session_state["whole_image_results"] = results
             st.session_state["run_sensitivity"]     = sensitivity
+            st.session_state["run_confidence"] = confidence_threshold # <-- ADD THIS LINE
             st.session_state["run_ensemble"]        = use_ensemble
             st.session_state["run_ensemble_lvls"]   = ensemble_levels
 
@@ -593,6 +594,7 @@ else:
         if st.session_state["whole_image_results"] is not None:
             whole_stale = (
                 st.session_state["run_sensitivity"] != sensitivity
+                or st.session_state["run_confidence"] != confidence_threshold # <-- ADD THIS LINE
                 or st.session_state["run_ensemble"] != use_ensemble
                 or (use_ensemble and st.session_state["run_ensemble_lvls"] != ensemble_levels)
             )
@@ -611,7 +613,11 @@ else:
             if predictions is not None:
                 predicted_class        = np.argmax(predictions)
                 prediction_percentages = predictions[0] * 100
-
+                # --- ADDED CONFIDENCE THRESHOLD LOGIC ---
+                conf = float(prediction_percentages[1])
+                if predicted_class == 1 and conf < confidence_threshold:
+                    predicted_class = 0
+                # ----------------------------------------
                 if predicted_class == 0:
                     st.success("✅ This is a normal brick wall.")
                 elif predicted_class == 1:
