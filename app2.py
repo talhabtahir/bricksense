@@ -147,7 +147,7 @@ def import_and_predict(image_bytes: bytes, sensitivity: int = 9):
         
         orig_height, orig_width, _ = original_img.shape
         max_dimension     = max(orig_width, orig_height)
-        contour_thickness = max(2, int(max_dimension / 200))
+        contour_thickness = max(2, int(max_dimension / 400))
 
         # Resize for model prediction
         img_resized  = cv2.resize(original_img, (224, 224))
@@ -282,7 +282,7 @@ def tiled_crack_detection(image_bytes: bytes,
         n_cols      = pad_w_total // TILE_SIZE
         total_tiles = n_rows * n_cols
 
-        contour_thickness = max(2, int(max(orig_w, orig_h) / 200))
+        contour_thickness = max(2, int(max(orig_w, orig_h) / 400))
 
         output_canvas     = padded_img.copy()
         tile_grid_overlay = padded_img.copy().astype(np.float32)
