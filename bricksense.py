@@ -61,7 +61,10 @@ app_mode = st.selectbox("Choose Application", options=app_options, index=0)
 if app_mode == "Predict Brick Properties":
     exec(open("app1.py").read())
 
-elif app_mode == "Detect Brick Wall Cracks":
+elif app_mode == "App 1: Detect Wall Cracks":
+    exec(open("app2.py").read())
+
+elif app_mode == "App 2: Detect Wall Cracks +":
     exec(open("app21.py").read())
     
 
