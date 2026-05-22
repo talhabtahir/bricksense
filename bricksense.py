@@ -54,7 +54,7 @@ Engr. Talha Bin Tahir\n
 """)
 
 # App Selection using dropdown
-app_options = ["Select an App", "Predict Brick Properties", "Detect Brick Wall Cracks"]
+app_options = ["Select an App", "Predict Brick Properties", "App 1: Detect Wall Cracks", "App 2: Detect Wall Cracks +"]
 app_mode = st.selectbox("Choose Application", options=app_options, index=0)
 
 # App Execution Based on Selection
