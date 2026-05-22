@@ -62,7 +62,7 @@ if app_mode == "Predict Brick Properties":
     exec(open("app1.py").read())
 
 elif app_mode == "Detect Brick Wall Cracks":
-    exec(open("app2.py").read())
+    exec(open("app21.py").read())
     
 
 # Common Footer
