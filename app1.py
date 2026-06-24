@@ -29,8 +29,8 @@ def run_tflite_inference(interpreter, inputs):
 @st.cache_resource
 def load_models():
     strength_interpreter = load_tflite_model('brick_FlexureStrength_Reg_model_epoch50.tflite')
-    # class_interpreter = load_tflite_model('brick_classification_model.tflite')
-    class_interpreter = load_tflite_model('brick_classification_model trial 2.tflite')
+    class_interpreter = load_tflite_model('brick_classification_model.tflite')
+    # class_interpreter = load_tflite_model('brick_classification_model trial 2.tflite')
     absorption_interpreter = load_tflite_model('brick_absorption_Model.tflite')
     return strength_interpreter, class_interpreter, absorption_interpreter
 def correct_orientation(image):
