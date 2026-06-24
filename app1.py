@@ -70,8 +70,8 @@ if file:
         image = Image.open(file).convert('RGB')  # PIL loads as RGB
         image = correct_orientation(image)   # fix BEFORE inference, on the actual PIL image
         image_np = np.array(image)
-        image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)  # Convert to BGR
-        resized_image = cv2.resize(image_bgr, (224, 224)) / 255.0
+        # image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)  # Convert to BGR
+        resized_image = cv2.resize(image_np, (224, 224)) / 255.0
         img_tensor = np.expand_dims(resized_image.astype(np.float32), axis=0)
 
         class_pred = run_tflite_inference(class_model, [img_tensor])
