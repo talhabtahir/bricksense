@@ -68,6 +68,7 @@ if file:
     try:
           # Read and convert image to BGR (to match training setup)
         image = Image.open(file).convert('RGB')  # PIL loads as RGB
+        image = correct_orientation(image)   # fix BEFORE inference, on the actual PIL image
         image_np = np.array(image)
         image_bgr = cv2.cvtColor(image_np, cv2.COLOR_RGB2BGR)  # Convert to BGR
         resized_image = cv2.resize(image_bgr, (224, 224)) / 255.0
@@ -76,10 +77,10 @@ if file:
         class_pred = run_tflite_inference(class_model, [img_tensor])
         class_label = np.argmax(class_pred[0])
 
-        # st.subheader("🧪 Debug Info")
+        st.subheader("🧪 Debug Info")
+        st.write(class_pred)
         # st.write("🔢 Raw classification prediction vector:", class_pred)
         # st.write("🔍 Predicted class index (argmax):", class_label)
-        image = correct_orientation(file) # correction of orientation for images in taken from mobile
         if class_label == 3:
             st.image(image, caption="Uploaded Image")
             st.error("🚫 This is not a brick. Please upload a valid brick image.")
