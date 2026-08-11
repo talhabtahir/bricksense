@@ -458,7 +458,150 @@ def tiled_crack_detection(image_bytes: bytes,
         st.error(f"Error in tiled detection: {e}")
         aggressive_cleanup()
         return None, None, None, None, None
+# ══════════════════════════════════════════════
+# Pixel-level crack localization (whole-image)
+# Weakly-supervised localization from the existing classifier:
+#   1. Slide an overlapping 224×224 window across the whole image
+#   2. For each window classified as "Cracked", extract its CAM
+#   3. Stitch all CAMs into one full-resolution heatmap (averaged in overlaps)
+#   4. Threshold heatmap → coarse mask
+#   5. (Optional) Edge-snap: intersect with Canny edges, then morphologically
+#      close & filter small components → fine pixel-level mask
+#   6. Render whole-image outputs (heatmap overlay, binary mask, painted mask)
+# ══════════════════════════════════════════════
+@st.cache_data(show_spinner=False)
+def pixel_level_localization(image_bytes: bytes,
+                              sensitivity: int = 9,
+                              window_confidence: float = 50.0,
+                              stride: int = 112,
+                              threshold_mode: str = "otsu",
+                              manual_threshold: float = 0.5,
+                              edge_snap: bool = True,
+                              min_crack_area: int = 50):
+    try:
+        image_data = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        original_img = np.array(image_data, dtype=np.uint8)
+        image_data.close()
+        del image_data
 
+        orig_h, orig_w, _ = original_img.shape
+        pad_h = max(0, TILE_SIZE - orig_h)
+        pad_w = max(0, TILE_SIZE - orig_w)
+        padded = cv2.copyMakeBorder(original_img, 0, pad_h, 0, pad_w, cv2.BORDER_REFLECT)
+        H, W = padded.shape[:2]
+
+        def window_positions(dim, tile, step):
+            positions = list(range(0, max(1, dim - tile + 1), max(1, step)))
+            if positions[-1] != dim - tile:
+                positions.append(dim - tile)
+            return positions
+
+        ys = window_positions(H, TILE_SIZE, stride)
+        xs = window_positions(W, TILE_SIZE, stride)
+        positions = [(y, x) for y in ys for x in xs]
+        total_windows = len(positions)
+
+        heatmap_canvas = np.zeros((H, W), dtype=np.float32)
+        weight_canvas  = np.zeros((H, W), dtype=np.float32)
+        cracked_windows = 0
+        custom_model = build_custom_model(sensitivity)
+
+        # ── Small mini-batch, matching app's tile batch size ──
+        MINI_BATCH = 4
+
+        for start in range(0, total_windows, MINI_BATCH):
+            chunk_positions = positions[start:start + MINI_BATCH]
+            batch = np.stack(
+                [padded[y:y + TILE_SIZE, x:x + TILE_SIZE] for y, x in chunk_positions],
+                axis=0
+            ).astype(np.float32) / 255.0
+
+            conv_outputs, pred_vecs = custom_model.predict(batch, verbose=0)
+            del batch
+
+            for i, (y, x) in enumerate(chunk_positions):
+                pred_idx = int(np.argmax(pred_vecs[i]))
+                conf = float(pred_vecs[i][pred_idx]) * 100
+                if pred_idx == 1 and conf >= window_confidence:
+                    cracked_windows += 1
+                    cam = conv_outputs[i]
+                    heat = np.mean(cam, axis=-1) if cam.ndim == 3 else cam
+                    heat = np.maximum(heat, 0)
+                    if heat.max() > 0:
+                        heat = heat / heat.max()
+                    heat_resized = cv2.resize(heat, (TILE_SIZE, TILE_SIZE),
+                                              interpolation=cv2.INTER_LINEAR)  # cheaper than CUBIC
+                    heatmap_canvas[y:y + TILE_SIZE, x:x + TILE_SIZE] += heat_resized
+                    weight_canvas[y:y + TILE_SIZE, x:x + TILE_SIZE] += 1.0
+                    del heat, heat_resized
+
+            del conv_outputs, pred_vecs, chunk_positions
+
+        del padded
+
+        valid = weight_canvas > 0
+        heatmap_canvas[valid] = heatmap_canvas[valid] / weight_canvas[valid]
+        heatmap_full = heatmap_canvas[:orig_h, :orig_w]
+        del heatmap_canvas, weight_canvas
+
+        heat_uint8 = np.uint8(255 * np.clip(heatmap_full, 0.0, 1.0))
+        if threshold_mode == "otsu" and heat_uint8.max() > 0:
+            _, mask = cv2.threshold(heat_uint8, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        else:
+            _, mask = cv2.threshold(heat_uint8, int(255 * manual_threshold), 255, cv2.THRESH_BINARY)
+
+        if edge_snap and mask.any():
+            gray = cv2.cvtColor(original_img, cv2.COLOR_RGB2GRAY)
+            edges = cv2.dilate(cv2.Canny(gray, 50, 150), np.ones((3, 3), np.uint8), iterations=1)
+            mask = cv2.bitwise_and(mask, edges)
+            mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+            del gray, edges
+
+        if min_crack_area > 0 and mask.any():
+            num_labels, labels, stats_cc, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+            cleaned = np.zeros_like(mask)
+            for k in range(1, num_labels):
+                if stats_cc[k, cv2.CC_STAT_AREA] >= min_crack_area:
+                    cleaned[labels == k] = 255
+            mask = cleaned
+            del labels, stats_cc, cleaned
+
+        heatmap_colored = np.uint8(255 * cm.jet(heatmap_full)[:, :, :3])
+        heatmap_overlay_img = Image.fromarray(cv2.addWeighted(original_img, 0.5, heatmap_colored, 0.5, 0))
+        del heatmap_colored
+
+        binary_mask_img = Image.fromarray(mask)
+
+        mask_on_image = original_img.copy()
+        mask_bool = mask > 0
+        if mask_bool.any():
+            red = np.zeros_like(original_img)
+            red[:, :, 0] = 255
+            alpha = 0.6
+            mask_on_image[mask_bool] = (
+                (1 - alpha) * mask_on_image[mask_bool].astype(np.float32)
+                + alpha * red[mask_bool].astype(np.float32)
+            ).astype(np.uint8)
+        mask_on_image_img = Image.fromarray(mask_on_image)
+        del original_img, mask_on_image, mask_bool, red if 'red' in dir() else None
+
+        crack_pixels = int((mask > 0).sum())
+        total_pixels = int(orig_h * orig_w)
+        stats = {
+            "crack_pixels": crack_pixels,
+            "total_pixels": total_pixels,
+            "crack_pct": (crack_pixels / total_pixels) * 100 if total_pixels else 0.0,
+            "windows_total": total_windows,
+            "windows_cracked": cracked_windows,
+        }
+
+        aggressive_cleanup()
+        return heatmap_overlay_img, binary_mask_img, mask_on_image_img, stats
+
+    except Exception as e:
+        st.error(f"Error in pixel-level localization: {e}")
+        aggressive_cleanup()
+        return None, None, None, None
 
 # ══════════════════════════════════════════════
 # Session-state initialisation
@@ -474,6 +617,14 @@ def init_session_state():
         "run_ensemble":         None,
         "run_ensemble_lvls":    None,
         "memory_warning_shown": False,
+        "pixel_results": None,
+        "run_pixel_stride": None,
+        "run_pixel_window_conf": None,
+        "run_pixel_thresh_mode": None,
+        "run_pixel_manual_thr": None,
+        "run_pixel_edge_snap": None,
+        "run_pixel_min_area": None,
+        "run_pixel_sensitivity": None,
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -575,6 +726,50 @@ else:
                     ensemble_levels = ()
             else:
                 ensemble_levels = ()
+            st.divider()
+            st.markdown("**🎯 Pixel-Level Localization Settings**")
+            pixel_stride = st.select_slider(
+                "Sliding-window stride (px) — smaller = denser localization, slower",
+                options=[224, 112, 56, 32],
+                value=112,
+                help=(
+                    "Stride at which the 224×224 window slides over the image. "
+                    "112 = 50% overlap (default). 56 = 75% overlap (denser, ~4× slower). "
+                    "224 = no overlap (fastest, same as tile mode)."
+                ),
+            )
+            window_confidence = st.slider(
+                "Window confidence gate (%) — only windows above this contribute CAM",
+                min_value=10.0, max_value=99.0, value=50.0, step=1.0,
+                help=(
+                    "Sliding windows classified as 'Cracked' below this confidence "
+                    "do NOT contribute to the heatmap. Lower = more permissive."
+                ),
+            )
+            threshold_mode = st.radio(
+                "Heatmap → mask threshold method",
+                options=["otsu", "manual"],
+                horizontal=True,
+                help="Otsu picks the threshold automatically; Manual lets you set it.",
+            )
+            manual_threshold = st.slider(
+                "Manual threshold (0–1)",
+                min_value=0.05, max_value=0.95, value=0.50, step=0.05,
+                disabled=(threshold_mode == "otsu"),
+            )
+            edge_snap = st.toggle(
+                "🪡 Edge-snap refinement (snap mask to dark crack pixels)",
+                value=True,
+                help=(
+                    "After thresholding the heatmap, intersect with Canny edges "
+                    "and morphologically close — gives much sharper pixel-level masks "
+                    "on clean walls. Disable on very textured masonry if it over-snaps."
+                ),
+            )
+            min_crack_area = st.slider(
+                "Minimum crack area (px) — drop connected components smaller than this",
+                min_value=0, max_value=500, value=50, step=10,
+            )
 
         # ═══════════════════════════════════════════════════════════
         # Whole-image analysis
@@ -804,7 +999,129 @@ else:
                         df.style.apply(highlight_cracked, axis=1),
                         use_container_width=True,
                     )
+        # ═══════════════════════════════════════════════════════════
+        # Pixel-level crack localization section
+        # ═══════════════════════════════════════════════════════════
+        st.divider()
+        st.subheader("🎯 Pixel-Level Crack Localization (Whole-Image)")
+        st.caption(
+            "Sliding-window CAM is stitched into one continuous pixel-resolution "
+            "heatmap across the entire image, then refined into a pixel-accurate "
+            "binary crack mask."
+        )
 
+        run_pixel = st.button("▶ Run Pixel-Level Localization", type="primary")
+
+        if run_pixel:
+            with st.spinner("Running pixel-level localization … this may take a moment."):
+                pixel_output = pixel_level_localization(
+                    image_bytes,
+                    sensitivity=sensitivity,
+                    window_confidence=window_confidence,
+                    stride=int(pixel_stride),
+                    threshold_mode=threshold_mode,
+                    manual_threshold=float(manual_threshold),
+                    edge_snap=edge_snap,
+                    min_crack_area=int(min_crack_area),
+                )
+            st.session_state["pixel_results"]           = pixel_output
+            st.session_state["run_pixel_sensitivity"]    = sensitivity
+            st.session_state["run_pixel_stride"]         = pixel_stride
+            st.session_state["run_pixel_window_conf"]    = window_confidence
+            st.session_state["run_pixel_thresh_mode"]    = threshold_mode
+            st.session_state["run_pixel_manual_thr"]     = manual_threshold
+            st.session_state["run_pixel_edge_snap"]      = edge_snap
+            st.session_state["run_pixel_min_area"]       = min_crack_area
+
+        # Stale warning for pixel results
+        if st.session_state["pixel_results"] is not None:
+            pixel_stale = (
+                st.session_state["run_pixel_sensitivity"] != sensitivity
+                or st.session_state["run_pixel_stride"]      != pixel_stride
+                or st.session_state["run_pixel_window_conf"] != window_confidence
+                or st.session_state["run_pixel_thresh_mode"] != threshold_mode
+                or (threshold_mode == "manual"
+                    and st.session_state["run_pixel_manual_thr"] != manual_threshold)
+                or st.session_state["run_pixel_edge_snap"]   != edge_snap
+                or st.session_state["run_pixel_min_area"]    != min_crack_area
+            )
+            if pixel_stale:
+                st.warning(
+                    "⚠️ Settings have changed since the last pixel-level localization. "
+                    "Click **▶ Run Pixel-Level Localization** to update the results."
+                )
+
+        if st.session_state["pixel_results"] is None:
+            st.info("Click **▶ Run Pixel-Level Localization** to run pixel-level crack localization.")
+        else:
+            (heatmap_overlay_img, binary_mask_img,
+             mask_on_image_img, pixel_stats) = st.session_state["pixel_results"]
+
+            if pixel_stats is not None:
+                p1, p2, p3, p4 = st.columns(4)
+                p1.metric("Crack pixels",   f"{pixel_stats['crack_pixels']:,}")
+                p2.metric("Total pixels",   f"{pixel_stats['total_pixels']:,}")
+                p3.metric("Crack coverage", f"{pixel_stats['crack_pct']:.2f}%")
+                p4.metric(
+                    "Cracked windows",
+                    f"{pixel_stats['windows_cracked']} / {pixel_stats['windows_total']}",
+                )
+
+                if pixel_stats["crack_pixels"] == 0:
+                    st.success(
+                        "✅ No crack pixels detected. Either the wall is intact, "
+                        "or no sliding window passed the confidence gate."
+                    )
+                elif pixel_stats["crack_pct"] < 1.0:
+                    st.info(
+                        f"ℹ️ Hairline / minor cracking — {pixel_stats['crack_pct']:.2f}% "
+                        f"of the wall area is classified as crack pixels."
+                    )
+                elif pixel_stats["crack_pct"] < 5.0:
+                    st.warning(
+                        f"⚠️ Moderate cracking — {pixel_stats['crack_pct']:.2f}% "
+                        f"of the wall area is classified as crack pixels."
+                    )
+                else:
+                    st.error(
+                        f"🚨 Severe cracking — {pixel_stats['crack_pct']:.2f}% "
+                        f"of the wall area is classified as crack pixels."
+                    )
+
+                st.write("")
+                pc1, pc2 = st.columns(2)
+                with pc1:
+                    st.image(
+                        heatmap_overlay_img,
+                        caption="Continuous CAM heatmap (whole image)",
+                        use_container_width=True,
+                    )
+                with pc2:
+                    st.image(
+                        mask_on_image_img,
+                        caption="Crack pixels painted on original image",
+                        use_container_width=True,
+                    )
+
+                with st.expander("🖼️ Binary Mask & Run Details"):
+                    st.image(
+                        binary_mask_img,
+                        caption="Binary pixel-level crack mask (white = crack)",
+                        use_container_width=True,
+                    )
+                    st.markdown(
+                        f"""
+                            - **Sliding window**: 224×224 px, stride **{pixel_stats['windows_total']}** windows
+                              at stride **{st.session_state['run_pixel_stride']}** px.
+                            - **Window gate**: only windows classified as *Cracked* with confidence
+                              ≥ **{st.session_state['run_pixel_window_conf']:.0f}%** contributed CAM
+                              ({pixel_stats['windows_cracked']} qualified).
+                            - **Threshold**: **{st.session_state['run_pixel_thresh_mode']}**
+                              {f"@ {st.session_state['run_pixel_manual_thr']:.2f}" if st.session_state['run_pixel_thresh_mode'] == "manual" else "(auto)"}.
+                            - **Edge-snap refinement**: **{'on' if st.session_state['run_pixel_edge_snap'] else 'off'}**.
+                            - **Min crack area filter**: **{st.session_state['run_pixel_min_area']}** px.
+                                                    """
+                    )    
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
         aggressive_cleanup()
