@@ -583,7 +583,9 @@ def pixel_level_localization(image_bytes: bytes,
                 + alpha * red[mask_bool].astype(np.float32)
             ).astype(np.uint8)
         mask_on_image_img = Image.fromarray(mask_on_image)
-        del original_img, mask_on_image, mask_bool, red if 'red' in dir() else None
+        del original_img, mask_on_image, mask_bool
+        if 'red' in dir():
+            del red
 
         crack_pixels = int((mask > 0).sum())
         total_pixels = int(orig_h * orig_w)
@@ -671,9 +673,16 @@ else:
         st.session_state["run_confidence"]      = None
         st.session_state["run_ensemble"]        = None
         st.session_state["run_ensemble_lvls"]   = None
+        st.session_state["pixel_results"]           = None   # ADD
+        st.session_state["run_pixel_sensitivity"]   = None   # ADD
+        st.session_state["run_pixel_stride"]        = None   # ADD
+        st.session_state["run_pixel_window_conf"]   = None   # ADD
+        st.session_state["run_pixel_thresh_mode"]   = None   # ADD
+        st.session_state["run_pixel_manual_thr"]    = None   # ADD
+        st.session_state["run_pixel_edge_snap"]     = None   # ADD
+        st.session_state["run_pixel_min_area"]      = None   # ADD
         st.session_state["last_image_hash"]     = image_hash
         aggressive_cleanup()
-
     try:
         image, (new_w, new_h), (orig_w, orig_h) = memory_efficient_image_load(image_bytes, max_dimension=2000)
         
@@ -1109,19 +1118,17 @@ else:
                         caption="Binary pixel-level crack mask (white = crack)",
                         use_container_width=True,
                     )
-                    st.markdown(
-                        f"""
-                            - **Sliding window**: 224×224 px, stride **{pixel_stats['windows_total']}** windows
-                              at stride **{st.session_state['run_pixel_stride']}** px.
-                            - **Window gate**: only windows classified as *Cracked* with confidence
-                              ≥ **{st.session_state['run_pixel_window_conf']:.0f}%** contributed CAM
-                              ({pixel_stats['windows_cracked']} qualified).
-                            - **Threshold**: **{st.session_state['run_pixel_thresh_mode']}**
-                              {f"@ {st.session_state['run_pixel_manual_thr']:.2f}" if st.session_state['run_pixel_thresh_mode'] == "manual" else "(auto)"}.
-                            - **Edge-snap refinement**: **{'on' if st.session_state['run_pixel_edge_snap'] else 'off'}**.
-                            - **Min crack area filter**: **{st.session_state['run_pixel_min_area']}** px.
-                                                    """
-                    )    
+                    st.markdown(f"""
+                    - **Sliding window**: 224×224 px, stride **{pixel_stats['windows_total']}** windows
+                      at stride **{st.session_state['run_pixel_stride']}** px.
+                    - **Window gate**: only windows classified as *Cracked* with confidence
+                      ≥ **{st.session_state['run_pixel_window_conf']:.0f}%** contributed CAM
+                      ({pixel_stats['windows_cracked']} qualified).
+                    - **Threshold**: **{st.session_state['run_pixel_thresh_mode']}**
+                      {f"@ {st.session_state['run_pixel_manual_thr']:.2f}" if st.session_state['run_pixel_thresh_mode'] == "manual" else "(auto)"}.
+                    - **Edge-snap refinement**: **{'on' if st.session_state['run_pixel_edge_snap'] else 'off'}**.
+                    - **Min crack area filter**: **{st.session_state['run_pixel_min_area']}** px.
+                    """)    
     except Exception as e:
         st.error(f"Error processing the uploaded image: {e}")
         aggressive_cleanup()
