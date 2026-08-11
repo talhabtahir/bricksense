@@ -614,10 +614,14 @@ def init_session_state():
         "whole_image_results":  None,
         "tile_results":         None,
         "last_image_hash":      None,
-        "run_sensitivity":      None,
-        "run_confidence":       None,
-        "run_ensemble":         None,
-        "run_ensemble_lvls":    None,
+        "run_whole_sensitivity": None,   # CHANGED — was "run_sensitivity"
+        "run_whole_confidence":  None,   # CHANGED — was "run_confidence"
+        "run_whole_ensemble":    None,   # CHANGED — was "run_ensemble"
+        "run_whole_ensemble_lvls": None, # CHANGED — was "run_ensemble_lvls"
+        "run_tile_sensitivity": None,    # NEW — tile gets its own copy
+        "run_tile_confidence":  None,    # NEW
+        "run_tile_ensemble":    None,    # NEW
+        "run_tile_ensemble_lvls": None,  # NEW
         "memory_warning_shown": False,
         "pixel_results": None,
         "run_pixel_stride": None,
@@ -627,6 +631,7 @@ def init_session_state():
         "run_pixel_edge_snap": None,
         "run_pixel_min_area": None,
         "run_pixel_sensitivity": None,
+        "run_pixel_grid": None,          # optional — see below if you want it
     }
     for k, v in defaults.items():
         if k not in st.session_state:
@@ -667,21 +672,25 @@ else:
 
     # Reset on new image
     if st.session_state["last_image_hash"] != image_hash:
-        st.session_state["whole_image_results"] = None
-        st.session_state["tile_results"]        = None
-        st.session_state["run_sensitivity"]     = None
-        st.session_state["run_confidence"]      = None
-        st.session_state["run_ensemble"]        = None
-        st.session_state["run_ensemble_lvls"]   = None
-        st.session_state["pixel_results"]           = None   # ADD
-        st.session_state["run_pixel_sensitivity"]   = None   # ADD
-        st.session_state["run_pixel_stride"]        = None   # ADD
-        st.session_state["run_pixel_window_conf"]   = None   # ADD
-        st.session_state["run_pixel_thresh_mode"]   = None   # ADD
-        st.session_state["run_pixel_manual_thr"]    = None   # ADD
-        st.session_state["run_pixel_edge_snap"]     = None   # ADD
-        st.session_state["run_pixel_min_area"]      = None   # ADD
-        st.session_state["last_image_hash"]     = image_hash
+        st.session_state["whole_image_results"]     = None
+        st.session_state["tile_results"]             = None
+        st.session_state["run_whole_sensitivity"]    = None   # CHANGED
+        st.session_state["run_whole_confidence"]     = None   # CHANGED
+        st.session_state["run_whole_ensemble"]       = None   # CHANGED
+        st.session_state["run_whole_ensemble_lvls"]  = None   # CHANGED
+        st.session_state["run_tile_sensitivity"]     = None   # NEW
+        st.session_state["run_tile_confidence"]      = None   # NEW
+        st.session_state["run_tile_ensemble"]        = None   # NEW
+        st.session_state["run_tile_ensemble_lvls"]   = None   # NEW
+        st.session_state["pixel_results"]            = None
+        st.session_state["run_pixel_sensitivity"]    = None
+        st.session_state["run_pixel_stride"]         = None
+        st.session_state["run_pixel_window_conf"]    = None
+        st.session_state["run_pixel_thresh_mode"]    = None
+        st.session_state["run_pixel_manual_thr"]     = None
+        st.session_state["run_pixel_edge_snap"]      = None
+        st.session_state["run_pixel_min_area"]       = None
+        st.session_state["last_image_hash"]          = image_hash
         aggressive_cleanup()
     try:
         image, (new_w, new_h), (orig_w, orig_h) = memory_efficient_image_load(image_bytes, max_dimension=2000)
@@ -789,18 +798,18 @@ else:
             with st.spinner("Running whole-image analysis…"):
                 results = import_and_predict(image_bytes, sensitivity)
             st.session_state["whole_image_results"] = results
-            st.session_state["run_sensitivity"]     = sensitivity
-            st.session_state["run_confidence"] = confidence_threshold # <-- ADD THIS LINE
-            st.session_state["run_ensemble"]        = use_ensemble
-            st.session_state["run_ensemble_lvls"]   = ensemble_levels
+            st.session_state["run_whole_sensitivity"]  = sensitivity           # CHANGED
+            st.session_state["run_whole_confidence"]   = confidence_threshold  # CHANGED
+            st.session_state["run_whole_ensemble"]     = use_ensemble          # CHANGED
+            st.session_state["run_whole_ensemble_lvls"] = ensemble_levels      # CHANGED
 
         # Stale warning for whole-image
         if st.session_state["whole_image_results"] is not None:
             whole_stale = (
-                st.session_state["run_sensitivity"] != sensitivity
-                or st.session_state["run_confidence"] != confidence_threshold # <-- ADD THIS LINE
-                or st.session_state["run_ensemble"] != use_ensemble
-                or (use_ensemble and st.session_state["run_ensemble_lvls"] != ensemble_levels)
+                st.session_state["run_whole_sensitivity"] != sensitivity              # CHANGED
+                or st.session_state["run_whole_confidence"] != confidence_threshold   # CHANGED
+                or st.session_state["run_whole_ensemble"] != use_ensemble             # CHANGED
+                or (use_ensemble and st.session_state["run_whole_ensemble_lvls"] != ensemble_levels)  # CHANGED
             )
             if whole_stale:
                 st.warning(
@@ -928,18 +937,17 @@ else:
                     ensemble_levels=ensemble_levels,
                 )
             st.session_state["tile_results"]      = tile_output
-            st.session_state["run_sensitivity"]   = sensitivity
-            st.session_state["run_confidence"]    = confidence_threshold
-            st.session_state["run_ensemble"]      = use_ensemble
-            st.session_state["run_ensemble_lvls"] = ensemble_levels
-
-        # Stale warning for tile results
+            st.session_state["run_tile_sensitivity"]   = sensitivity           # CHANGED
+            st.session_state["run_tile_confidence"]    = confidence_threshold  # CHANGED
+            st.session_state["run_tile_ensemble"]      = use_ensemble          # CHANGED
+            st.session_state["run_tile_ensemble_lvls"] = ensemble_levels       # CHANGED
+        
         if st.session_state["tile_results"] is not None:
             tile_stale = (
-                st.session_state["run_sensitivity"] != sensitivity
-                or st.session_state["run_confidence"] != confidence_threshold
-                or st.session_state["run_ensemble"]   != use_ensemble
-                or (use_ensemble and st.session_state["run_ensemble_lvls"] != ensemble_levels)
+                st.session_state["run_tile_sensitivity"] != sensitivity              # CHANGED
+                or st.session_state["run_tile_confidence"] != confidence_threshold   # CHANGED
+                or st.session_state["run_tile_ensemble"] != use_ensemble             # CHANGED
+                or (use_ensemble and st.session_state["run_tile_ensemble_lvls"] != ensemble_levels)  # CHANGED
             )
             if tile_stale:
                 st.warning(
@@ -1112,20 +1120,26 @@ else:
                         use_container_width=True,
                     )
 
-                with st.expander("🖼️ Binary Mask & Run Details"):
+                st.write("")
+                pc3, pc4 = st.columns(2)
+                with pc3:
                     st.image(
                         binary_mask_img,
                         caption="Binary pixel-level crack mask (white = crack)",
                         use_container_width=True,
                     )
+                with pc4:
+                    st.image(
+                        image,
+                        caption="Original (for reference)",
+                        use_container_width=True,
+                    )
+
+                with st.expander("ℹ️ Run Details"):
                     st.markdown(f"""
-                    - **Sliding window**: 224×224 px, stride **{pixel_stats['windows_total']}** windows
-                      at stride **{st.session_state['run_pixel_stride']}** px.
-                    - **Window gate**: only windows classified as *Cracked* with confidence
-                      ≥ **{st.session_state['run_pixel_window_conf']:.0f}%** contributed CAM
-                      ({pixel_stats['windows_cracked']} qualified).
-                    - **Threshold**: **{st.session_state['run_pixel_thresh_mode']}**
-                      {f"@ {st.session_state['run_pixel_manual_thr']:.2f}" if st.session_state['run_pixel_thresh_mode'] == "manual" else "(auto)"}.
+                    - **Sliding window**: 224×224 px, **{pixel_stats['windows_total']}** windows total at stride **{st.session_state['run_pixel_stride']}** px.
+                    - **Window gate**: only windows classified as *Cracked* with confidence ≥ **{st.session_state['run_pixel_window_conf']:.0f}%** contributed CAM ({pixel_stats['windows_cracked']} qualified).
+                    - **Threshold**: **{st.session_state['run_pixel_thresh_mode']}**{f" @ {st.session_state['run_pixel_manual_thr']:.2f}" if st.session_state['run_pixel_thresh_mode'] == "manual" else " (auto)"}.
                     - **Edge-snap refinement**: **{'on' if st.session_state['run_pixel_edge_snap'] else 'off'}**.
                     - **Min crack area filter**: **{st.session_state['run_pixel_min_area']}** px.
                     """)    
