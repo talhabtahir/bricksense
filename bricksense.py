@@ -49,7 +49,7 @@ st.sidebar.write("""This app uses AI models for two purposes:\n
 **Developed at CUST by:**\n
 Group 24 (Batch 213)\n
 Group 25 (Batch 203)\n
-Group 13 (Batch 213)\n
+Group 13 (Batch 223)\n
 Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
