@@ -49,6 +49,7 @@ st.sidebar.write("""This app uses AI models for two purposes:\n
 **Developed at CUST by:**\n
 Group 24 (Batch 213)\n
 Group 25 (Batch 203)\n
+Group 13 (Batch 213)\n
 Engr. Talha Bin Tahir\n
 **Email:** thebricksense@outlook.com
 """)
@@ -61,11 +62,8 @@ app_mode = st.selectbox("Choose Application", options=app_options, index=0)
 if app_mode == "Predict Brick Properties":
     exec(open("app1.py").read())
 
-elif app_mode == "App 1: Detect Wall Cracks":
+elif app_mode == "Detect Wall Cracks":
     exec(open("app2.py").read())
-
-elif app_mode == "App 2: Detect Wall Cracks +":
-    exec(open("app21.py").read())
     
 
 # Common Footer
